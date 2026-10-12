@@ -153,6 +153,20 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#1a1a1a;color:va
 .action-btn-ready{background:#065F46;color:#34D399}
 .action-btn-ready:hover{background:#047857}
 
+/* ── ALLERGEN ALERT ── */
+.allergen-alert{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);
+  border-radius:var(--radius-sm);padding:8px 12px;
+  font-size:12px;color:#F87171;font-weight:500;margin-bottom:14px;
+}
+.allergen-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);
+  border-radius:var(--radius-pill);padding:2px 8px;
+  font-size:11px;color:#F87171;font-weight:600;
+}
+
 /* ── PICKUP TIMER ── */
 .pickup-timer{
   display:inline-flex;align-items:center;gap:6px;
@@ -335,6 +349,9 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#1a1a1a;color:va
             <div class="order-item-tag"><strong>1×</strong> Strawberry Cake (Medium)</div>
             <div class="order-item-tag"><strong>2×</strong> Vanilla Cupcake</div>
           </div>
+          <div class="allergen-alert">
+            ⚠️ <strong>ALLERGEN ALERT</strong> — <span class="allergen-badge">🥜 Nuts</span> must be completely avoided. Cross-contamination risk.
+          </div>
           <div class="order-note">
             <strong>📝 Special instructions</strong>
             "Happy Birthday Sarah!" on the cake. No nuts — allergen.
@@ -388,9 +405,12 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#1a1a1a;color:va
             <div class="order-item-tag"><strong>1×</strong> Red Velvet Cake (Medium)</div>
             <div class="order-item-tag"><strong>3×</strong> Croissant</div>
           </div>
+          <div class="allergen-alert">
+            ⚠️ <strong>ALLERGEN ALERT</strong> — <span class="allergen-badge">🥛 Dairy-free</span> request. No butter or cream in frosting.
+          </div>
           <div class="order-note">
             <strong>📝 Special instructions</strong>
-            Extra frosting on the cake please.
+            Extra frosting on the cake please. Dairy-free frosting only.
           </div>
           <div class="order-meta">
             <div class="order-meta-item">💰 <strong>$44.00</strong></div>
@@ -439,6 +459,9 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#1a1a1a;color:va
           </div>
           <div class="order-items">
             <div class="order-item-tag"><strong>1×</strong> Strawberry Cake (Small)</div>
+          </div>
+          <div class="allergen-alert">
+            ⚠️ <strong>ALLERGEN ALERT</strong> — <span class="allergen-badge">🌾 Gluten-free</span> request. Use dedicated gluten-free equipment only.
           </div>
           <div class="order-note">
             <strong>📝 Special instructions</strong>
