@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Oodel — Baker Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --forest:#2F4A3B;
+  --forest-light:#3d6150;
+  --raspberry:#C0335E;
+  --cream:#FFFDF8;
+  --pistachio:#E8F0E8;
+  --butter:#F3CC63;
+  --ink:#1C1018;
+  --muted:#7A6E77;
+  --line:#E2DCE0;
+  --white:#FFFFFF;
+  --card-shadow:0 2px 16px rgba(28,16,24,0.08);
+  --radius:16px;
+  --radius-sm:10px;
+  --radius-pill:999px;
+  --placed:#3B82F6;
+  --baking:#F59E0B;
+  --ready:#10B981;
+}
+
+html,body{height:100%;font-family:'Inter',sans-serif;background:#1a1a1a;color:var(--ink);-webkit-font-smoothing:antialiased}
+
+/* ── NAV ── */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;height:56px;
+  background:#111;border-bottom:1px solid #333;
+}
+.nav-brand{display:flex;align-items:center;gap:10px}
+.nav-logo{width:30px;height:30px;border-radius:50%;background:var(--forest);display:flex;align-items:center;justify-content:center}
+.nav-logo svg{width:13px;height:13px}
+.nav-wordmark{font-family:'Playfair Display',serif;font-size:17px;font-weight:600;color:var(--cream)}
+.nav-wordmark span{color:var(--raspberry)}
+.nav-right{display:flex;align-items:center;gap:10px}
+.nav-badge{padding:4px 12px;border-radius:var(--radius-pill);background:#222;border:1px solid #333;font-size:12px;font-weight:500;color:#aaa}
+.nav-badge span{color:var(--butter)}
+.nav-logout{padding:6px 14px;border-radius:var(--radius-pill);background:transparent;border:1px solid #444;color:#aaa;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif}
+
+/* ── LAYOUT ── */
+.layout{display:flex;min-height:100vh;padding-top:56px}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:220px;background:#111;border-right:1px solid #222;
+  padding:20px 12px;position:fixed;top:56px;bottom:0;
+  display:flex;flex-direction:column;gap:4px;
+}
+.sidebar-label{font-size:10px;font-weight:600;color:#555;letter-spacing:.1em;text-transform:uppercase;padding:8px 12px 4px}
+.sidebar-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;border-radius:var(--radius-sm);
+  font-size:13px;font-weight:500;color:#888;cursor:pointer;
+  transition:all .15s;border:none;background:none;
+  font-family:'Inter',sans-serif;width:100%;text-align:left;
+}
+.sidebar-item:hover{background:#1a1a1a;color:#ccc}
+.sidebar-item.active{background:var(--forest);color:var(--cream)}
+.sidebar-item .badge{margin-left:auto;background:var(--raspberry);color:white;font-size:10px;font-weight:700;padding:2px 7px;border-radius:var(--radius-pill)}
+
+/* ── MAIN ── */
+.main{margin-left:220px;flex:1;padding:24px;background:#141414}
+
+/* ── PAGE HEADER ── */
+.page-header{margin-bottom:24px}
+.page-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:500;color:var(--cream);margin-bottom:4px}
+.page-sub{font-size:13px;color:#666}
+
+/* ── STATS ROW ── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.stat-card{background:#1e1e1e;border:1px solid #2a2a2a;border-radius:var(--radius);padding:16px}
+.stat-num{font-size:28px;font-weight:700;color:var(--cream);font-family:'Playfair Display',serif}
+.stat-label{font-size:12px;color:#666;margin-top:2px}
+.stat-card.blue .stat-num{color:#60A5FA}
+.stat-card.amber .stat-num{color:#FCD34D}
+.stat-card.green .stat-num{color:#34D399}
+.stat-card.red .stat-num{color:#F87171}
+
+/* ── FILTERS ── */
+.filters{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.filter-btn{
+  padding:7px 16px;border-radius:var(--radius-pill);
+  font-size:13px;font-weight:500;cursor:pointer;
+  border:1px solid #333;background:#1e1e1e;color:#888;
+  font-family:'Inter',sans-serif;transition:all .15s;
+}
+.filter-btn.active{background:var(--forest);color:var(--cream);border-color:var(--forest)}
+.filter-count{display:inline-block;background:#333;color:#aaa;font-size:10px;font-weight:700;padding:1px 6px;border-radius:var(--radius-pill);margin-left:4px}
+.filter-btn.active .filter-count{background:rgba(255,255,255,0.2);color:white}
+
+/* ── ORDER CARDS ── */
+.orders-grid{display:flex;flex-direction:column;gap:12px}
+.order-card{
+  background:#1e1e1e;border:1px solid #2a2a2a;
+  border-radius:var(--radius);padding:18px;
+  transition:border-color .15s;
+}
+.order-card:hover{border-color:#444}
+.order-card.priority{border-left:3px solid var(--raspberry)}
+
+.order-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.order-id{font-size:15px;font-weight:700;color:var(--cream)}
+.order-time{font-size:12px;color:#666;margin-top:2px}
+.order-customer{font-size:13px;color:#aaa;margin-top:1px}
+
+.status-badge{
+  padding:5px 12px;border-radius:var(--radius-pill);
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+}
+.status-placed{background:rgba(59,130,246,0.15);color:#60A5FA;border:1px solid rgba(59,130,246,0.3)}
+.status-baking{background:rgba(245,158,11,0.15);color:#FCD34D;border:1px solid rgba(245,158,11,0.3)}
+.status-ready{background:rgba(16,185,129,0.15);color:#34D399;border:1px solid rgba(16,185,129,0.3)}
+
+.order-items{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.order-item-tag{
+  background:#252525;border:1px solid #333;
+  border-radius:var(--radius-sm);padding:6px 12px;
+  font-size:12px;color:#ccc;
+}
+.order-item-tag strong{color:var(--cream)}
+
+.order-note{
+  background:#252525;border-radius:var(--radius-sm);
+  padding:10px 12px;font-size:12px;color:#aaa;
+  margin-bottom:14px;border-left:2px solid var(--butter);
+}
+.order-note strong{color:var(--butter);display:block;margin-bottom:2px;font-size:11px}
+
+.order-meta{display:flex;align-items:center;gap:16px;margin-bottom:14px}
+.order-meta-item{font-size:12px;color:#666}
+.order-meta-item strong{color:#aaa}
+
+.order-actions{display:flex;gap:8px}
+.action-btn{
+  flex:1;height:38px;border-radius:var(--radius-sm);
+  font-size:13px;font-weight:600;cursor:pointer;
+  border:none;font-family:'Inter',sans-serif;transition:all .15s;
+}
+.action-btn-primary{background:var(--forest);color:var(--cream)}
+.action-btn-primary:hover{background:var(--forest-light)}
+.action-btn-secondary{background:#252525;color:#aaa;border:1px solid #333}
+.action-btn-secondary:hover{border-color:#555;color:#ccc}
+.action-btn-ready{background:#065F46;color:#34D399}
+.action-btn-ready:hover{background:#047857}
+
+/* ── PICKUP TIMER ── */
+.pickup-timer{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 10px;border-radius:var(--radius-pill);
+  font-size:11px;font-weight:600;
+}
+.pickup-timer.urgent{background:rgba(239,68,68,0.15);color:#F87171;border:1px solid rgba(239,68,68,0.3)}
+.pickup-timer.soon{background:rgba(245,158,11,0.15);color:#FCD34D;border:1px solid rgba(245,158,11,0.3)}
+.pickup-timer.ok{background:rgba(16,185,129,0.15);color:#34D399;border:1px solid rgba(16,185,129,0.3)}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:60px 20px;color:#555}
+.empty-icon{font-size:48px;margin-bottom:16px}
+
+/* ── MOBILE ── */
+@media(max-width:768px){
+  .sidebar{display:none}
+  .main{margin-left:0}
+  .stats-row{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ─── LOGIN SCREEN ─── -->
+<div id="login-screen" style="min-height:100vh;background:#0f0f0f;display:flex;align-items:center;justify-content:center;padding:20px">
+  <div style="width:100%;max-width:380px">
+
+    <!-- Logo -->
+    <div style="text-align:center;margin-bottom:40px">
+      <div style="width:52px;height:52px;border-radius:50%;background:var(--forest);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFDF8" stroke-width="2.5"><path d="M12 2L2 19h20L12 2z"/></svg>
+      </div>
+      <div style="font-family:'Playfair Display',serif;font-size:26px;font-weight:600;color:var(--cream)">Oodel<span style="color:var(--raspberry)">.</span></div>
+      <div style="font-size:13px;color:#555;margin-top:4px">Baker & Kitchen Staff Portal</div>
+    </div>
+
+    <!-- Card -->
+    <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:20px;padding:28px">
+      <div style="font-size:18px;font-weight:600;color:var(--cream);margin-bottom:4px">Sign in</div>
+      <div style="font-size:13px;color:#555;margin-bottom:24px">Enter your staff credentials to continue</div>
+
+      <!-- Error -->
+      <div id="login-error" style="display:none;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:10px 14px;font-size:13px;color:#F87171;margin-bottom:16px">
+        ⚠️ Invalid username or password. Please try again.
+      </div>
+
+      <div style="margin-bottom:14px">
+        <label style="font-size:12px;font-weight:500;color:#888;display:block;margin-bottom:6px">Username</label>
+        <input id="baker-username" type="text" placeholder="Enter your username"
+          style="width:100%;height:46px;padding:0 14px;background:#111;border:1.5px solid #333;border-radius:10px;font-size:14px;font-family:'Inter',sans-serif;color:var(--cream);outline:none;transition:border-color .15s"
+          onfocus="this.style.borderColor='#2F4A3B'" onblur="this.style.borderColor='#333'">
+      </div>
+
+      <div style="margin-bottom:20px">
+        <label style="font-size:12px;font-weight:500;color:#888;display:block;margin-bottom:6px">Password</label>
+        <input id="baker-password" type="password" placeholder="Enter your password"
+          style="width:100%;height:46px;padding:0 14px;background:#111;border:1.5px solid #333;border-radius:10px;font-size:14px;font-family:'Inter',sans-serif;color:var(--cream);outline:none;transition:border-color .15s"
+          onfocus="this.style.borderColor='#2F4A3B'" onblur="this.style.borderColor='#333'"
+          onkeydown="if(event.key==='Enter')handleBakerLogin()">
+      </div>
+
+      <button onclick="handleBakerLogin()"
+        style="width:100%;height:48px;border-radius:999px;background:var(--forest);color:var(--cream);border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:background .15s"
+        onmouseover="this.style.background='#3d6150'" onmouseout="this.style.background='#2F4A3B'">
+        Sign in to Kitchen Portal
+      </button>
+
+      <div style="text-align:center;margin-top:16px;font-size:12px;color:#444">
+        🔒 Staff access only · Unauthorized access prohibited
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:20px;font-size:12px;color:#333">
+      Oodel · Northridge · CIT 480 Senior Project
+    </div>
+  </div>
+</div>
+
+<!-- ─── MAIN PORTAL (hidden until login) ─── -->
+<div id="portal-screen" style="display:none">
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">
+    <div class="nav-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#FFFDF8" stroke-width="2.5"><path d="M12 2L2 19h20L12 2z"/></svg>
+    </div>
+    <span class="nav-wordmark">Oodel<span>.</span></span>
+  </div>
+  <div class="nav-right">
+    <div class="nav-badge">Baker · <span>Kitchen</span></div>
+    <button class="nav-logout">Sign out</button>
+  </div>
+</nav>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-label">Kitchen</div>
+    <button class="sidebar-item active" onclick="showView('orders')">
+      <span>🧾</span> Orders Queue
+      <span class="badge" id="queue-count">3</span>
+    </button>
+    <button class="sidebar-item" onclick="showView('production')">
+      <span>🔥</span> In Production
+    </button>
+    <button class="sidebar-item" onclick="showView('ready')">
+      <span>✅</span> Ready for Pickup
+    </button>
+
+    <div class="sidebar-label" style="margin-top:12px">Info</div>
+    <button class="sidebar-item" onclick="showView('batch')">
+      <span>📋</span> Batch Info
+    </button>
+    <button class="sidebar-item" onclick="showView('clock')">
+      <span>⏱️</span> Clock In/Out
+    </button>
+
+    <div style="margin-top:auto;padding:12px;background:#1a1a1a;border-radius:var(--radius-sm);border:1px solid #2a2a2a">
+      <div style="font-size:11px;color:#555;margin-bottom:4px">Shift started</div>
+      <div style="font-size:14px;font-weight:600;color:#aaa" id="shift-time">8:00 AM</div>
+      <div style="font-size:11px;color:#555;margin-top:2px" id="shift-duration">3h 25m elapsed</div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- ORDERS VIEW -->
+    <div id="view-orders">
+      <div class="page-header">
+        <div class="page-title">Orders Queue</div>
+        <div class="page-sub" id="current-time">Today · Loading time...</div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-card blue">
+          <div class="stat-num">3</div>
+          <div class="stat-label">Placed — waiting</div>
+        </div>
+        <div class="stat-card amber">
+          <div class="stat-num">2</div>
+          <div class="stat-label">Currently baking</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-num">5</div>
+          <div class="stat-label">Ready today</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-num">1</div>
+          <div class="stat-label">Urgent — due soon</div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="filters">
+        <button class="filter-btn active" onclick="filterOrders('all',this)">All <span class="filter-count">6</span></button>
+        <button class="filter-btn" onclick="filterOrders('placed',this)">Placed <span class="filter-count">3</span></button>
+        <button class="filter-btn" onclick="filterOrders('baking',this)">Baking <span class="filter-count">2</span></button>
+        <button class="filter-btn" onclick="filterOrders('ready',this)">Ready <span class="filter-count">1</span></button>
+      </div>
+
+      <!-- Orders -->
+      <div class="orders-grid">
+
+        <!-- Order 1 — URGENT -->
+        <div class="order-card priority" data-status="placed">
+          <div class="order-top">
+            <div>
+              <div class="order-id">CK-2481 <span class="pickup-timer urgent">⚡ 45 min to pickup</span></div>
+              <div class="order-customer">Sarah Johnson</div>
+              <div class="order-time">Placed at 9:42 AM · Pickup 11:30 AM</div>
+            </div>
+            <div class="status-badge status-placed">Placed</div>
+          </div>
+          <div class="order-items">
+            <div class="order-item-tag"><strong>1×</strong> Strawberry Cake (Medium)</div>
+            <div class="order-item-tag"><strong>2×</strong> Vanilla Cupcake</div>
+          </div>
+          <div class="order-note">
+            <strong>📝 Special instructions</strong>
+            "Happy Birthday Sarah!" on the cake. No nuts — allergen.
+          </div>
+          <div class="order-meta">
+            <div class="order-meta-item">💰 <strong>$38.00</strong></div>
+            <div class="order-meta-item">📍 <strong>Northridge</strong></div>
+            <div class="order-meta-item">💳 <strong>Paid online</strong></div>
+          </div>
+          <div class="order-actions">
+            <button class="action-btn action-btn-secondary">View details</button>
+            <button class="action-btn action-btn-primary" onclick="updateStatus(this,'baking')">🔥 Start baking</button>
+          </div>
+        </div>
+
+        <!-- Order 2 -->
+        <div class="order-card" data-status="placed">
+          <div class="order-top">
+            <div>
+              <div class="order-id">CK-2482 <span class="pickup-timer soon">⏱ 2h to pickup</span></div>
+              <div class="order-customer">Michael Chen</div>
+              <div class="order-time">Placed at 9:55 AM · Pickup 12:00 PM</div>
+            </div>
+            <div class="status-badge status-placed">Placed</div>
+          </div>
+          <div class="order-items">
+            <div class="order-item-tag"><strong>1×</strong> Chocolate Cake (Large)</div>
+          </div>
+          <div class="order-meta">
+            <div class="order-meta-item">💰 <strong>$28.00</strong></div>
+            <div class="order-meta-item">📍 <strong>Northridge</strong></div>
+            <div class="order-meta-item">💳 <strong>Paid online</strong></div>
+          </div>
+          <div class="order-actions">
+            <button class="action-btn action-btn-secondary">View details</button>
+            <button class="action-btn action-btn-primary" onclick="updateStatus(this,'baking')">🔥 Start baking</button>
+          </div>
+        </div>
+
+        <!-- Order 3 -->
+        <div class="order-card" data-status="placed">
+          <div class="order-top">
+            <div>
+              <div class="order-id">CK-2483 <span class="pickup-timer ok">✓ 3h to pickup</span></div>
+              <div class="order-customer">Emily Rodriguez</div>
+              <div class="order-time">Placed at 10:10 AM · Pickup 1:00 PM</div>
+            </div>
+            <div class="status-badge status-placed">Placed</div>
+          </div>
+          <div class="order-items">
+            <div class="order-item-tag"><strong>1×</strong> Red Velvet Cake (Medium)</div>
+            <div class="order-item-tag"><strong>3×</strong> Croissant</div>
+          </div>
+          <div class="order-note">
+            <strong>📝 Special instructions</strong>
+            Extra frosting on the cake please.
+          </div>
+          <div class="order-meta">
+            <div class="order-meta-item">💰 <strong>$44.00</strong></div>
+            <div class="order-meta-item">📍 <strong>Northridge</strong></div>
+            <div class="order-meta-item">💵 <strong>Cash on pickup</strong></div>
+          </div>
+          <div class="order-actions">
+            <button class="action-btn action-btn-secondary">View details</button>
+            <button class="action-btn action-btn-primary" onclick="updateStatus(this,'baking')">🔥 Start baking</button>
+          </div>
+        </div>
+
+        <!-- Order 4 — BAKING -->
+        <div class="order-card" data-status="baking">
+          <div class="order-top">
+            <div>
+              <div class="order-id">CK-2479 <span class="pickup-timer urgent">⚡ 30 min to pickup</span></div>
+              <div class="order-customer">David Kim</div>
+              <div class="order-time">Baking since 9:30 AM · Pickup 11:00 AM</div>
+            </div>
+            <div class="status-badge status-baking">Baking</div>
+          </div>
+          <div class="order-items">
+            <div class="order-item-tag"><strong>1×</strong> Vanilla Cupcake (×6 box)</div>
+          </div>
+          <div class="order-meta">
+            <div class="order-meta-item">💰 <strong>$18.00</strong></div>
+            <div class="order-meta-item">📍 <strong>Northridge</strong></div>
+            <div class="order-meta-item">💳 <strong>Paid online</strong></div>
+          </div>
+          <div class="order-actions">
+            <button class="action-btn action-btn-secondary">View details</button>
+            <button class="action-btn action-btn-ready" onclick="updateStatus(this,'ready')">✅ Mark as ready</button>
+          </div>
+        </div>
+
+        <!-- Order 5 — BAKING -->
+        <div class="order-card" data-status="baking">
+          <div class="order-top">
+            <div>
+              <div class="order-id">CK-2480 <span class="pickup-timer soon">⏱ 1h to pickup</span></div>
+              <div class="order-customer">Lisa Park</div>
+              <div class="order-time">Baking since 9:50 AM · Pickup 11:45 AM</div>
+            </div>
+            <div class="status-badge status-baking">Baking</div>
+          </div>
+          <div class="order-items">
+            <div class="order-item-tag"><strong>1×</strong> Strawberry Cake (Small)</div>
+          </div>
+          <div class="order-note">
+            <strong>📝 Special instructions</strong>
+            "Congratulations!" written on top.
+          </div>
+          <div class="order-meta">
+            <div class="order-meta-item">💰 <strong>$18.00</strong></div>
+            <div class="order-meta-item">📍 <strong>Northridge</strong></div>
+            <div class="order-meta-item">💳 <strong>Paid online</strong></div>
+          </div>
+          <div class="order-actions">
+            <button class="action-btn action-btn-secondary">View details</button>
+            <button class="action-btn action-btn-ready" onclick="updateStatus(this,'ready')">✅ Mark as ready</button>
+          </div>
+        </div>
+
+        <!-- Order 6 — READY -->
+        <div class="order-card" data-status="ready">
+          <div class="order-top">
+            <div>
+              <div class="order-id">CK-2478</div>
+              <div class="order-customer">Tom Wilson</div>
+              <div class="order-time">Ready since 9:15 AM · Pickup 10:00 AM</div>
+            </div>
+            <div class="status-badge status-ready">Ready</div>
+          </div>
+          <div class="order-items">
+            <div class="order-item-tag"><strong>1×</strong> Chocolate Cake (Medium)</div>
+          </div>
+          <div class="order-meta">
+            <div class="order-meta-item">💰 <strong>$22.00</strong></div>
+            <div class="order-meta-item">📍 <strong>Northridge</strong></div>
+            <div class="order-meta-item">💳 <strong>Paid online</strong></div>
+          </div>
+          <div class="order-actions">
+            <button class="action-btn action-btn-secondary" style="flex:2">Waiting for customer pickup</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- BATCH INFO VIEW -->
+    <div id="view-batch" style="display:none">
+      <div class="page-header">
+        <div class="page-title">Batch Production Info</div>
+        <div class="page-sub">Today's production schedule</div>
+      </div>
+      <div style="background:#1e1e1e;border:1px solid #2a2a2a;border-radius:var(--radius);padding:24px;color:#aaa;text-align:center">
+        <div style="font-size:40px;margin-bottom:12px">📋</div>
+        <div style="font-size:15px;color:#ccc;font-weight:600;margin-bottom:8px">Batch info coming soon</div>
+        <div style="font-size:13px">This will show production schedules, quantities, and batch details once the backend is connected.</div>
+      </div>
+    </div>
+
+    <!-- CLOCK VIEW -->
+    <div id="view-clock" style="display:none">
+      <div class="page-header">
+        <div class="page-title">Clock In / Out</div>
+        <div class="page-sub">Track your shift hours</div>
+      </div>
+      <div style="background:#1e1e1e;border:1px solid #2a2a2a;border-radius:var(--radius);padding:32px;text-align:center">
+        <div style="font-size:48px;font-family:'Playfair Display',serif;color:var(--cream);margin-bottom:8px" id="clock-display">10:25 AM</div>
+        <div style="font-size:13px;color:#666;margin-bottom:24px">Sunday, October 11, 2026</div>
+        <div style="background:#252525;border-radius:var(--radius);padding:16px;margin-bottom:20px;text-align:left">
+          <div style="font-size:12px;color:#555;margin-bottom:8px">CURRENT SHIFT</div>
+          <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px"><span style="color:#888">Clocked in</span><span style="color:#ccc;font-weight:600">8:00 AM</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:#888">Elapsed</span><span style="color:var(--butter);font-weight:600">2h 25m</span></div>
+        </div>
+        <button style="width:100%;height:48px;border-radius:var(--radius-pill);background:var(--raspberry);color:white;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">Clock Out</button>
+      </div>
+    </div>
+
+    <!-- PRODUCTION VIEW -->
+    <div id="view-production" style="display:none">
+      <div class="page-header">
+        <div class="page-title">In Production</div>
+        <div class="page-sub">Orders currently being baked</div>
+      </div>
+      <div style="color:#aaa;font-size:14px;text-align:center;padding:40px">
+        <div style="font-size:40px;margin-bottom:12px">🔥</div>
+        <div style="color:#ccc;font-weight:600;margin-bottom:6px">2 orders in the oven</div>
+        <div>CK-2479 and CK-2480 are currently baking.</div>
+      </div>
+    </div>
+
+    <!-- READY VIEW -->
+    <div id="view-ready" style="display:none">
+      <div class="page-header">
+        <div class="page-title">Ready for Pickup</div>
+        <div class="page-sub">Orders waiting for customer collection</div>
+      </div>
+      <div style="background:#1e1e1e;border:1px solid rgba(16,185,129,0.3);border-radius:var(--radius);padding:18px;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-size:15px;font-weight:700;color:var(--cream)">CK-2478</div>
+            <div style="font-size:13px;color:#888;margin-top:2px">Tom Wilson · Chocolate Cake</div>
+            <div style="font-size:12px;color:#555;margin-top:1px">Ready since 9:15 AM</div>
+          </div>
+          <div class="status-badge status-ready">Ready</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// Baker login — demo credentials
+// TODO: Replace with real API call → POST /api/login
+function handleBakerLogin(){
+  const username = document.getElementById('baker-username').value.trim();
+  const password = document.getElementById('baker-password').value.trim();
+  const error = document.getElementById('login-error');
+
+  if(username === 'baker' && password === 'oodel2026'){
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('portal-screen').style.display = 'block';
+    error.style.display = 'none';
+  } else {
+    error.style.display = 'block';
+  }
+}
+
+// Live clock
+function updateClock(){
+  const now = new Date();
+  const t = now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true});
+  const d = now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  const el = document.getElementById('current-time');
+  const cl = document.getElementById('clock-display');
+  if(el) el.textContent = 'Today · ' + t;
+  if(cl) cl.textContent = t;
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// Show view
+function showView(view){
+  document.querySelectorAll('[id^="view-"]').forEach(v=>v.style.display='none');
+  document.getElementById('view-'+view).style.display='block';
+  document.querySelectorAll('.sidebar-item').forEach(s=>s.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+}
+
+// Filter orders
+function filterOrders(status, btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.order-card').forEach(card=>{
+    card.style.display = (status==='all' || card.dataset.status===status) ? 'block' : 'none';
+  });
+}
+
+// Update order status
+function updateStatus(btn, newStatus){
+  const card = btn.closest('.order-card');
+  const badge = card.querySelector('.status-badge');
+  card.dataset.status = newStatus;
+
+  if(newStatus === 'baking'){
+    badge.className = 'status-badge status-baking';
+    badge.textContent = 'Baking';
+    btn.className = 'action-btn action-btn-ready';
+    btn.textContent = '✅ Mark as ready';
+    btn.onclick = function(){ updateStatus(this,'ready'); };
+  } else if(newStatus === 'ready'){
+    badge.className = 'status-badge status-ready';
+    badge.textContent = 'Ready';
+    btn.parentElement.innerHTML = '<button class="action-btn action-btn-secondary" style="flex:2">Waiting for customer pickup</button>';
+    card.classList.remove('priority');
+  }
+}
+</script>
+</div><!-- end portal-screen -->
+</body>
+</html>

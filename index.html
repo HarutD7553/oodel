@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Oodel — Order online, pick up fresh</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --forest:#2F4A3B;
+  --forest-light:#3d6150;
+  --raspberry:#C0335E;
+  --raspberry-light:#d4406f;
+  --cream:#FFFDF8;
+  --pistachio:#E8F0E8;
+  --butter:#F3CC63;
+  --ink:#1C1018;
+  --muted:#7A6E77;
+  --line:#E2DCE0;
+  --white:#FFFFFF;
+  --card-shadow:0 2px 16px rgba(28,16,24,0.08);
+  --radius:20px;
+  --radius-sm:12px;
+  --radius-pill:999px;
+}
+
+html,body{height:100%;font-family:'Inter',sans-serif;background:var(--pistachio);color:var(--ink);-webkit-font-smoothing:antialiased}
+
+/* ── NAV ── */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;height:56px;
+  background:rgba(255,253,248,0.92);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.nav-logo{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--forest);display:flex;align-items:center;justify-content:center;
+}
+.nav-logo svg{width:14px;height:14px}
+.nav-wordmark{font-family:'Playfair Display',serif;font-size:18px;font-weight:600;color:var(--forest)}
+.nav-wordmark span{color:var(--raspberry)}
+.nav-actions{display:flex;align-items:center;gap:8px}
+.nav-btn{
+  height:34px;padding:0 16px;border-radius:var(--radius-pill);
+  font-size:13px;font-weight:500;cursor:pointer;border:none;
+  font-family:'Inter',sans-serif;transition:all .15s;
+}
+.nav-btn-ghost{background:transparent;color:var(--forest);border:1.5px solid var(--line)}
+.nav-btn-ghost:hover{border-color:var(--forest)}
+.nav-btn-fill{background:var(--forest);color:var(--cream)}
+.nav-btn-fill:hover{background:var(--forest-light)}
+
+/* ── SCREENS ── */
+.screen{display:none;min-height:100vh;padding-top:56px}
+.screen.active{display:block}
+
+/* ── PAGE WRAPPER ── */
+.page{max-width:420px;margin:0 auto;padding:32px 20px 48px}
+
+/* ── TYPOGRAPHY ── */
+.display{font-family:'Playfair Display',serif;font-size:32px;font-weight:600;color:var(--ink);line-height:1.2;margin-bottom:8px}
+.subtitle{font-size:15px;color:var(--muted);line-height:1.6;margin-bottom:28px}
+.label{font-size:13px;font-weight:500;color:var(--ink);margin-bottom:6px;display:block}
+
+/* ── INPUTS ── */
+.field{margin-bottom:16px}
+.input{
+  width:100%;height:50px;padding:0 16px;
+  background:var(--white);border:1.5px solid var(--line);
+  border-radius:var(--radius-sm);font-size:15px;
+  font-family:'Inter',sans-serif;color:var(--ink);
+  transition:border-color .15s;outline:none;
+}
+.input:focus{border-color:var(--forest)}
+.input::placeholder{color:var(--muted)}
+.input-tall{height:80px;padding:14px 16px;resize:none}
+.input-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237A6E77' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;background-color:var(--white);cursor:pointer}
+
+/* ── BUTTONS ── */
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;height:52px;border-radius:var(--radius-pill);
+  font-size:15px;font-weight:600;cursor:pointer;border:none;
+  font-family:'Inter',sans-serif;transition:all .18s;
+}
+.btn-primary{background:var(--forest);color:var(--cream)}
+.btn-primary:hover{background:var(--forest-light);transform:translateY(-1px)}
+.btn-primary:active{transform:translateY(0)}
+.btn-secondary{background:transparent;color:var(--ink);border:1.5px solid var(--line);margin-top:10px}
+.btn-secondary:hover{border-color:var(--forest);color:var(--forest)}
+.btn-raspberry{background:var(--raspberry);color:var(--white)}
+.btn-raspberry:hover{background:var(--raspberry-light)}
+
+/* ── DIVIDER ── */
+.divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:var(--muted);font-size:13px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--line)}
+
+/* ── ERROR ── */
+.error-box{
+  background:#FFF0F0;border:1.5px solid #FFCCCC;
+  border-radius:var(--radius-sm);padding:12px 14px;
+  font-size:13px;color:#CC0000;font-weight:500;
+  display:flex;align-items:flex-start;gap:8px;margin-bottom:16px;
+}
+
+/* ── CARD ── */
+.card{
+  background:var(--cream);border-radius:var(--radius);
+  border:1px solid var(--line);padding:24px;
+  box-shadow:var(--card-shadow);margin-bottom:16px;
+}
+
+/* ── MENU ── */
+.search-bar{
+  display:flex;align-items:center;gap:10px;
+  background:var(--white);border:1.5px solid var(--line);
+  border-radius:var(--radius-pill);padding:0 16px;
+  height:46px;margin-bottom:16px;
+}
+.search-bar input{flex:1;border:none;outline:none;font-size:14px;font-family:'Inter',sans-serif;background:transparent;color:var(--ink)}
+.search-bar input::placeholder{color:var(--muted)}
+
+.cat-tabs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-bottom:20px;padding-bottom:2px}
+.cat-tabs::-webkit-scrollbar{display:none}
+.cat-tab{
+  padding:7px 16px;border-radius:var(--radius-pill);
+  font-size:13px;font-weight:500;white-space:nowrap;
+  cursor:pointer;border:1.5px solid var(--line);
+  background:var(--white);color:var(--muted);transition:all .15s;
+  font-family:'Inter',sans-serif;
+}
+.cat-tab.active{background:var(--forest);color:var(--cream);border-color:var(--forest)}
+
+.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.menu-card{
+  background:var(--white);border-radius:16px;
+  border:1px solid var(--line);overflow:hidden;
+  cursor:pointer;transition:transform .15s,box-shadow .15s;
+}
+.menu-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(28,16,24,0.1)}
+.menu-card.unavailable{opacity:0.5;pointer-events:none}
+.menu-img{
+  height:110px;background:var(--pistachio);
+  display:flex;align-items:center;justify-content:center;
+  font-size:32px;
+}
+.menu-body{padding:12px}
+.menu-name{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px}
+.menu-price{font-size:13px;color:var(--muted)}
+.menu-unavailable{font-size:11px;color:var(--raspberry);font-weight:500;margin-top:2px}
+
+/* ── ORDER FORM ── */
+.size-options{display:flex;gap:8px;margin-bottom:16px}
+.size-btn{
+  flex:1;height:42px;border-radius:var(--radius-sm);
+  background:var(--white);border:1.5px solid var(--line);
+  font-size:13px;font-weight:500;color:var(--muted);
+  cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;
+}
+.size-btn.active{background:var(--forest);color:var(--cream);border-color:var(--forest)}
+
+/* ── TRACKER ── */
+.eta-display{margin-bottom:4px}
+.eta-num{font-family:'Playfair Display',serif;font-size:56px;font-weight:500;color:var(--ink);line-height:1}
+.eta-unit{font-size:16px;color:var(--muted);margin-left:6px}
+.eta-sub{font-size:14px;color:var(--muted);margin-top:6px;margin-bottom:20px}
+.eta-ready{font-family:'Playfair Display',serif;font-size:40px;font-weight:500;color:var(--forest)}
+
+.progress-track{
+  display:flex;align-items:flex-start;
+  justify-content:space-between;
+  position:relative;padding:0 8px;margin-bottom:20px;
+}
+.progress-track::before{
+  content:'';position:absolute;
+  top:28px;left:52px;right:52px;height:2px;
+  background:var(--line);z-index:0;
+}
+.progress-fill{
+  position:absolute;top:28px;left:52px;
+  height:2px;background:var(--forest);
+  z-index:1;transition:width .5s ease;
+}
+.stage{display:flex;flex-direction:column;align-items:center;gap:8px;z-index:2}
+.stage-dot{
+  width:56px;height:56px;border-radius:50%;
+  background:var(--white);border:2px solid var(--line);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;transition:all .3s;
+}
+.stage-dot.active{background:var(--forest);border-color:var(--forest)}
+.stage-dot.done{background:var(--forest-light);border-color:var(--forest-light)}
+.stage-label{font-size:12px;font-weight:500;color:var(--muted)}
+.stage-label.active{color:var(--ink);font-weight:600}
+
+.divider-line{height:1px;background:var(--line);margin:16px 0}
+
+.status-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:500;color:var(--ink);margin-bottom:6px}
+.status-body{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:14px}
+
+.tag{
+  display:inline-flex;align-items:center;padding:6px 14px;
+  background:var(--butter);border-radius:var(--radius-pill);
+  font-size:12px;font-weight:600;color:#5C4A00;
+}
+
+.state-tabs{display:flex;gap:6px;justify-content:center;margin-bottom:20px}
+.state-tab{
+  padding:7px 16px;border-radius:var(--radius-pill);
+  font-size:12px;font-weight:600;cursor:pointer;
+  border:1.5px solid var(--line);background:var(--white);
+  color:var(--muted);transition:all .2s;font-family:'Inter',sans-serif;
+}
+.state-tab.active{background:var(--forest);color:var(--cream);border-color:var(--forest)}
+
+.email-block{
+  background:var(--white);border:1px solid var(--line);
+  border-radius:var(--radius);padding:18px;margin-top:4px;
+}
+.email-block-title{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:10px}
+.email-row{display:flex;gap:8px}
+.email-input{
+  flex:1;height:44px;padding:0 14px;
+  background:var(--pistachio);border:1.5px solid var(--line);
+  border-radius:var(--radius-sm);font-size:14px;
+  font-family:'Inter',sans-serif;color:var(--ink);outline:none;
+}
+.email-input:focus{border-color:var(--forest)}
+.email-btn{
+  height:44px;padding:0 16px;background:var(--forest);
+  border:none;border-radius:var(--radius-sm);color:var(--cream);
+  font-size:13px;font-weight:600;cursor:pointer;
+  font-family:'Inter',sans-serif;white-space:nowrap;
+}
+
+/* ── CONFIRMATION ── */
+.confirm-icon{
+  width:72px;height:72px;border-radius:50%;
+  background:var(--forest);display:flex;align-items:center;
+  justify-content:center;margin:0 auto 20px;font-size:28px;
+}
+.summary-row{
+  display:flex;justify-content:space-between;
+  align-items:center;padding:10px 0;
+  border-bottom:1px solid var(--line);font-size:14px;
+}
+.summary-row:last-child{border-bottom:none}
+.summary-key{color:var(--muted)}
+.summary-val{font-weight:600;color:var(--ink)}
+
+/* ── BACK BTN ── */
+.back-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:13px;font-weight:500;color:var(--muted);
+  cursor:pointer;background:none;border:none;
+  font-family:'Inter',sans-serif;padding:0;margin-bottom:20px;
+  transition:color .15s;
+}
+.back-btn:hover{color:var(--ink)}
+
+/* ── FOOTER ── */
+.footer{text-align:center;font-size:12px;color:var(--muted);margin-top:32px;padding-top:20px;border-top:1px solid var(--line)}
+
+/* ── SCREEN DOTS ── */
+.screen-dots{display:flex;gap:6px;justify-content:center;padding:12px 0 0}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--line);transition:all .2s;cursor:pointer}
+.sdot.active{background:var(--forest);width:18px;border-radius:3px}
+
+@media(max-width:430px){
+  .page{padding:24px 16px 40px}
+  .display{font-size:28px}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a class="nav-brand" onclick="goTo(0)" style="cursor:pointer">
+    <div class="nav-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#FFFDF8" stroke-width="2.5"><path d="M12 2L2 19h20L12 2z"/><circle cx="12" cy="8" r="1.5" fill="#C0335E" stroke="none"/></svg>
+    </div>
+    <span class="nav-wordmark">Oodel<span>.</span></span>
+  </a>
+  <div class="nav-actions">
+    <button class="nav-btn nav-btn-ghost" onclick="goTo(0)">Track order</button>
+  </div>
+</nav>
+
+<!-- SCREEN DOTS -->
+<div class="screen-dots" id="dots" style="position:fixed;top:62px;left:0;right:0;z-index:99;background:rgba(232,240,232,0.9);backdrop-filter:blur(8px);padding:8px 0">
+  <div class="sdot active" onclick="goTo(0)"></div>
+  <div class="sdot" onclick="goTo(1)"></div>
+  <div class="sdot" onclick="goTo(2)"></div>
+  <div class="sdot" onclick="goTo(3)"></div>
+  <div class="sdot" onclick="goTo(4)"></div>
+  <div class="sdot" onclick="goTo(5)"></div>
+</div>
+
+<!-- ─── SCREEN 0: LOGIN ─── -->
+<div class="screen active" id="screen-0" style="padding-top:96px">
+  <div class="page">
+    <div style="text-align:center;margin-bottom:32px">
+      <div style="width:64px;height:64px;border-radius:50%;background:var(--forest);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFDF8" stroke-width="2.5"><path d="M12 2L2 19h20L12 2z"/><circle cx="12" cy="8" r="1.5" fill="#C0335E" stroke="none"/></svg>
+      </div>
+      <div class="display">Welcome to Oodel</div>
+      <div class="subtitle">Track your order or browse our fresh-baked menu.</div>
+    </div>
+
+    <div class="error-box" id="login-error" style="display:none">
+      <span>⚠️</span>
+      <span>Order not found. Please check your order number and try again.</span>
+    </div>
+
+    <div class="field">
+      <label class="label">Email address</label>
+      <input class="input" type="email" placeholder="your@email.com" id="login-email">
+    </div>
+    <div class="field">
+      <label class="label">Order number</label>
+      <input class="input" type="text" placeholder="e.g. CK-2481" id="login-order">
+    </div>
+
+    <button class="btn btn-primary" onclick="handleLogin()">Track my order</button>
+    <div class="divider">or</div>
+    <button class="btn btn-secondary" onclick="goTo(1)">Browse our menu</button>
+
+    <div class="footer">Guest checkout available · No account needed</div>
+  </div>
+</div>
+
+<!-- ─── SCREEN 1: MENU ─── -->
+<div class="screen" id="screen-1" style="padding-top:96px">
+  <div class="page">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div class="display" style="margin:0">Our Menu</div>
+      <div style="font-size:22px;cursor:pointer">🛒</div>
+    </div>
+
+    <div class="search-bar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7A6E77" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input placeholder="Search cakes, pastries…">
+    </div>
+
+    <div class="cat-tabs">
+      <div class="cat-tab active">All</div>
+      <div class="cat-tab">Cakes</div>
+      <div class="cat-tab">Cupcakes</div>
+      <div class="cat-tab">Pastries</div>
+      <div class="cat-tab">Donuts</div>
+    </div>
+
+    <div class="menu-grid">
+      <div class="menu-card" data-category="cakes" onclick="goTo(2)">
+        <div class="menu-img">🍓</div>
+        <div class="menu-body">
+          <div class="menu-name">Strawberry Cake</div>
+          <div class="menu-price">$24.00</div>
+        </div>
+      </div>
+      <div class="menu-card" data-category="cakes" onclick="goTo(2)">
+        <div class="menu-img">🍫</div>
+        <div class="menu-body">
+          <div class="menu-name">Chocolate Cake</div>
+          <div class="menu-price">$22.00</div>
+        </div>
+      </div>
+      <div class="menu-card" data-category="cupcakes" onclick="goTo(2)">
+        <div class="menu-img">🧁</div>
+        <div class="menu-body">
+          <div class="menu-name">Vanilla Cupcake</div>
+          <div class="menu-price">$14.00</div>
+        </div>
+      </div>
+      <div class="menu-card" data-category="cakes" onclick="goTo(2)">
+        <div class="menu-img">❤️</div>
+        <div class="menu-body">
+          <div class="menu-name">Red Velvet Cake</div>
+          <div class="menu-price">$26.00</div>
+        </div>
+      </div>
+      <div class="menu-card" data-category="pastries" onclick="goTo(2)">
+        <div class="menu-img">🥐</div>
+        <div class="menu-body">
+          <div class="menu-name">Croissant</div>
+          <div class="menu-price">$6.00</div>
+        </div>
+      </div>
+      <div class="menu-card unavailable" data-category="pastries">
+        <div class="menu-img" style="background:#f0f0f0">🍋</div>
+        <div class="menu-body">
+          <div class="menu-name">Lemon Tart</div>
+          <div class="menu-unavailable">Unavailable today</div>
+          <div style="font-size:10px;color:var(--muted)">Missing ingredient</div>
+        </div>
+      </div>
+    </div>
+    <div class="footer">Oodel · Northridge</div>
+  </div>
+</div>
+
+<!-- ─── SCREEN 2: ORDER FORM ─── -->
+<div class="screen" id="screen-2" style="padding-top:96px">
+  <div class="page">
+    <button class="back-btn" onclick="goTo(1)">← Back to menu</button>
+    <div class="display">Customize your order</div>
+    <div class="subtitle">Choose your size, flavor, and pickup time.</div>
+
+    <div style="height:160px;background:var(--pistachio);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:56px;margin-bottom:20px">🍓</div>
+
+    <div class="field">
+      <label class="label">Size</label>
+      <div class="size-options">
+        <button class="size-btn" onclick="selectSize(this)">Small</button>
+        <button class="size-btn active" onclick="selectSize(this)">Medium</button>
+        <button class="size-btn" onclick="selectSize(this)">Large</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="label">Flavor</label>
+      <select class="input input-select">
+        <option value="">Select a flavor</option>
+        <option>Strawberry</option>
+        <option>Vanilla</option>
+        <option>Chocolate</option>
+        <option>Lemon</option>
+        <option>Red Velvet</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label class="label">Pickup date</label>
+      <input class="input" type="date">
+    </div>
+
+    <div class="field">
+      <label class="label">Message on cake <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+      <textarea class="input input-tall" placeholder="e.g. Happy Birthday Sarah! 🎂"></textarea>
+    </div>
+
+    <button class="btn btn-primary" onclick="goTo(3)" style="margin-top:8px">Continue to payment →</button>
+  </div>
+</div>
+
+<!-- ─── SCREEN 3: PAYMENT ─── -->
+<div class="screen" id="screen-3" style="padding-top:96px">
+  <div class="page">
+    <button class="back-btn" onclick="goTo(2)">← Back to order</button>
+    <div class="display">Payment</div>
+    <div class="subtitle">Choose how you'd like to pay.</div>
+
+    <!-- Order summary mini -->
+    <div style="background:var(--pistachio);border-radius:var(--radius-sm);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+      <div style="font-size:13px;color:var(--muted)">Strawberry Cake (Medium)</div>
+      <div style="font-size:15px;font-weight:600;color:var(--ink)">$24.00</div>
+    </div>
+
+    <!-- Payment method selector -->
+    <div class="label" style="margin-bottom:12px">Payment method</div>
+
+    <div id="pay-options" style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">
+
+      <div class="pay-opt active" onclick="selectPay(this)" style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--white);border:2px solid var(--forest);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s">
+        <span style="font-size:22px">💳</span>
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--ink)">Credit / Debit card</div>
+          <div style="font-size:12px;color:var(--muted)">Visa, Mastercard, Amex</div>
+        </div>
+        <div style="margin-left:auto;width:18px;height:18px;border-radius:50%;background:var(--forest);display:flex;align-items:center;justify-content:center">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+      </div>
+
+      <div class="pay-opt" onclick="selectPay(this)" style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--white);border:2px solid var(--line);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s">
+        <span style="font-size:22px">🍎</span>
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--ink)">Apple Pay</div>
+          <div style="font-size:12px;color:var(--muted)">Touch ID or Face ID</div>
+        </div>
+        <div style="margin-left:auto;width:18px;height:18px;border-radius:50%;background:var(--line)"></div>
+      </div>
+
+      <div class="pay-opt" onclick="selectPay(this)" style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--white);border:2px solid var(--line);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s">
+        <span style="font-size:22px">🌐</span>
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--ink)">Google Pay</div>
+          <div style="font-size:12px;color:var(--muted)">Pay with Google Wallet</div>
+        </div>
+        <div style="margin-left:auto;width:18px;height:18px;border-radius:50%;background:var(--line)"></div>
+      </div>
+
+      <div class="pay-opt" onclick="selectPay(this)" style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--white);border:2px solid var(--line);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s">
+        <span style="font-size:22px">💵</span>
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--ink)">Cash on pickup</div>
+          <div style="font-size:12px;color:var(--muted)">Pay when you collect your order</div>
+        </div>
+        <div style="margin-left:auto;width:18px;height:18px;border-radius:50%;background:var(--line)"></div>
+      </div>
+
+    </div>
+
+    <!-- Card details (shown when card selected) -->
+    <div id="card-fields">
+      <div class="field">
+        <label class="label">Card number</label>
+        <input class="input" type="text" placeholder="1234 5678 9012 3456" maxlength="19">
+      </div>
+      <div style="display:flex;gap:12px">
+        <div class="field" style="flex:1">
+          <label class="label">Expiry</label>
+          <input class="input" type="text" placeholder="MM / YY" maxlength="7">
+        </div>
+        <div class="field" style="flex:1">
+          <label class="label">CVV</label>
+          <input class="input" type="text" placeholder="123" maxlength="3">
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">Name on card</label>
+        <input class="input" type="text" placeholder="Vandan Patel">
+      </div>
+    </div>
+
+    <!-- Secure badge -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;padding:10px 14px;background:var(--pistachio);border-radius:var(--radius-sm)">
+      <span style="font-size:14px">🔒</span>
+      <span style="font-size:12px;color:var(--muted)">Your payment is secured with 256-bit SSL encryption</span>
+    </div>
+
+    <button class="btn btn-primary" onclick="goTo(4)">Pay $24.00</button>
+  </div>
+</div>
+
+<!-- ─── SCREEN 4: CONFIRMATION ─── -->
+<div class="screen" id="screen-4" style="padding-top:96px">
+  <div class="page" style="text-align:center">
+    <div class="confirm-icon">✓</div>
+    <div class="display">Order confirmed!</div>
+    <div class="subtitle">Your order CK-2481 has been received. We'll start baking it shortly.</div>
+
+    <div class="card" style="text-align:left;margin-top:8px">
+      <div class="summary-row"><span class="summary-key">Item</span><span class="summary-val">Strawberry Cake (M)</span></div>
+      <div class="summary-row"><span class="summary-key">Pickup</span><span class="summary-val">Oct 13 · 11:35 am</span></div>
+      <div class="summary-row"><span class="summary-key">Location</span><span class="summary-val">Northridge</span></div>
+      <div class="summary-row"><span class="summary-key">Total</span><span class="summary-val">$24.00</span></div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+      <button class="btn btn-primary" onclick="goTo(5)">Track my order</button>
+      <button class="btn btn-secondary" onclick="goTo(1)">Back to menu</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── SCREEN 5: TRACKER ─── -->
+<div class="screen" id="screen-5" style="padding-top:96px">
+  <div class="page">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-size:13px;color:var(--muted)">Order CK-2481</div>
+      <div style="font-size:13px;color:var(--muted)">Northridge</div>
+    </div>
+
+    <div class="state-tabs">
+      <div class="state-tab active" onclick="setTrackerState(0,this)">Placed</div>
+      <div class="state-tab" onclick="setTrackerState(1,this)">Baking</div>
+      <div class="state-tab" onclick="setTrackerState(2,this)">Ready</div>
+    </div>
+
+    <div class="card">
+      <div class="eta-display">
+        <span class="eta-num" id="eta-num">53</span>
+        <span class="eta-unit" id="eta-unit">minutes away</span>
+      </div>
+      <div class="eta-sub">Pickup by 11:35 am · Northridge</div>
+
+      <button class="btn btn-primary" style="margin-bottom:20px">Refresh status</button>
+
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+        <div class="stage">
+          <div class="stage-dot active" id="dot-0">🧾</div>
+          <div class="stage-label active" id="lbl-0">Placed</div>
+        </div>
+        <div class="stage">
+          <div class="stage-dot" id="dot-1">👨‍🍳</div>
+          <div class="stage-label" id="lbl-1">Baking</div>
+        </div>
+        <div class="stage">
+          <div class="stage-dot" id="dot-2">✅</div>
+          <div class="stage-label" id="lbl-2">Ready</div>
+        </div>
+      </div>
+
+      <div class="divider-line"></div>
+
+      <div class="status-title" id="status-title">Order placed</div>
+      <div class="status-body" id="status-body">We received your order at 10:42 am. It goes to the pastry bench in about eight minutes.</div>
+      <div class="tag">Paid · Pickup in store</div>
+    </div>
+
+    <div class="email-block">
+      <div class="email-block-title">Get notified when your order is ready</div>
+      <div class="email-row">
+        <input class="email-input" type="email" placeholder="your@email.com">
+        <button class="email-btn">Notify me</button>
+      </div>
+    </div>
+
+    <div class="footer">Oodel · Northridge · Questions? Call (818) 555-0119</div>
+  </div>
+</div>
+
+<script>
+const screenNames = ['Login','Menu','Order Form','Payment','Confirmation','Tracker'];
+
+function goTo(n){
+  document.querySelectorAll('.screen').forEach((s,i)=>s.classList.toggle('active',i===n));
+  document.querySelectorAll('.sdot').forEach((d,i)=>d.classList.toggle('active',i===n));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function handleLogin(){
+  const order = document.getElementById('login-order').value.trim();
+  const email = document.getElementById('login-email').value.trim();
+  if(!order || !email){
+    document.getElementById('login-error').style.display='flex';
+    return;
+  }
+  document.getElementById('login-error').style.display='none';
+  goTo(5);
+}
+
+function selectSize(el){
+  document.querySelectorAll('.size-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+const trackerStates=[
+  {num:'53',unit:'minutes away',fill:'0%',dots:['active','',''],title:'Order placed',body:'We received your order at 10:42 am. It goes to the pastry bench in about eight minutes.'},
+  {num:'21',unit:'minutes away',fill:'50%',dots:['done','active',''],title:'Now baking',body:'Your order is in the oven. We\'ll let you know as soon as it\'s ready for pickup.'},
+  {num:'Ready',unit:'',fill:'100%',dots:['done','done','active'],title:'Your order is ready!',body:'Head to Northridge to pick up your order. Show this screen at the counter.'}
+];
+
+function setTrackerState(idx,el){
+  document.querySelectorAll('.state-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const s=trackerStates[idx];
+  document.getElementById('eta-num').textContent=s.num;
+  document.getElementById('eta-unit').textContent=s.unit;
+  document.getElementById('progress-fill').style.width=s.fill;
+  document.getElementById('status-title').textContent=s.title;
+  document.getElementById('status-body').textContent=s.body;
+  for(let i=0;i<3;i++){
+    document.getElementById('dot-'+i).className='stage-dot '+(s.dots[i]||'');
+    document.getElementById('lbl-'+i).className='stage-label '+(s.dots[i]?'active':'');
+  }
+}
+
+// Payment method selection
+function selectPay(el){
+  document.querySelectorAll('.pay-opt').forEach(o=>{
+    o.style.borderColor='var(--line)';
+    o.querySelector('div[style*="margin-left:auto"]').style.background='var(--line)';
+    o.querySelector('div[style*="margin-left:auto"]').innerHTML='';
+  });
+  el.style.borderColor='var(--forest)';
+  const dot = el.querySelector('div[style*="margin-left:auto"]');
+  dot.style.background='var(--forest)';
+  dot.innerHTML='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>';
+  const isCard = el.querySelector('div > div').textContent.includes('Credit');
+  document.getElementById('card-fields').style.display = isCard ? 'block' : 'none';
+}
+
+// Category filtering
+const emptyState = document.createElement('div');
+emptyState.id = 'empty-state';
+emptyState.style.cssText = 'display:none;text-align:center;padding:40px 20px;color:var(--muted);font-size:14px';
+emptyState.innerHTML = '<div style="font-size:40px;margin-bottom:12px">🍩</div><div style="font-weight:600;color:var(--ink);margin-bottom:6px">Nothing here yet</div><div>This category is coming soon. Check back later!</div>';
+document.querySelector('.menu-grid').after(emptyState);
+
+document.querySelectorAll('.cat-tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.cat-tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    const cat = t.textContent.trim().toLowerCase();
+    const cards = document.querySelectorAll('.menu-card');
+    let visible = 0;
+    cards.forEach(card=>{
+      const cardCat = card.dataset.category;
+      const show = cat === 'all' || cardCat === cat;
+      card.style.display = show ? 'block' : 'none';
+      if(show) visible++;
+    });
+    const grid = document.querySelector('.menu-grid');
+    grid.style.display = visible > 0 ? 'grid' : 'none';
+    emptyState.style.display = visible === 0 ? 'block' : 'none';
+  });
+});
+</script>
+</body>
+</html>
