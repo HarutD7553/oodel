@@ -21,11 +21,11 @@
   with dev branch, which eventually merges with main branch.
 
 # Team Members of the project
-Keyan Moiny
-Armando Cuandros
-Mehr Bizek
-Harutiyan Domlmandjian
-Vandan Patel
+* Keyan Moiny
+* Armando Cuandros
+* Mehr Bizek
+* Harutiyan Domlmandjian
+* Vandan Patel
 
 # Project Status
 # Status: In Development 
