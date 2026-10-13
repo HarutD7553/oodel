@@ -11,8 +11,6 @@
 * Customer Requests: Organize custom cake requests and customer requirements.
 * Customer Database: Maintain customer information.
 * Bakery Operations: Support day-to-day bakery management workflows.
-  
-  //Update this list to reflect the features that are currently implemented.
 
 # Repository Branches
 - main : Contains the stable, tested version of the website.
