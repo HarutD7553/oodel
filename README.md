@@ -22,7 +22,7 @@
 * Keyan Moiny
 * Armando Cuandros
 * Mehr Bizek
-* Harutiyan Domlmandjian
+* Harutiyan Dolmandjian
 * Vandan Patel
 
 # Project Status
