@@ -7,10 +7,10 @@
 # Features
   The application is intended to support the following areas:
 
-  Order Management: Manage and track customer orders.
-  Customer Requests: Organize custom cake requests and customer requirements.
-  Customer Database: Maintain customer information.
-  Bakery Operations: Support day-to-day bakery management workflows.
+* Order Management: Manage and track customer orders.
+* Customer Requests: Organize custom cake requests and customer requirements.
+* Customer Database: Maintain customer information.
+* Bakery Operations: Support day-to-day bakery management workflows.
   
   //Update this list to reflect the features that are currently implemented.
 
