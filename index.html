@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Oodel — Order online, pick up fresh</title>
+<title>Oodel — Order fresh, pick up in Northridge</title>
+<meta name="description" content="Order fresh cakes, cupcakes and pastries online from Oodel. Pick up in Northridge.">
+<meta name="theme-color" content="#2F4A3B">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%232F4A3B'/%3E%3Cpath d='M16 7L7 24h18z' fill='none' stroke='%23FFFDF8' stroke-width='2.4' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='13' r='1.8' fill='%23C0335E'/%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -176,16 +179,22 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--pistachio)
   display:flex;align-items:flex-start;
   justify-content:space-between;
   position:relative;padding:0 8px;margin-bottom:20px;
+  overflow:hidden;
+}
+.progress-line-wrap{
+  position:absolute;top:28px;left:36px;right:36px;
+  height:2px;overflow:hidden;z-index:0;
 }
 .progress-track::before{
   content:'';position:absolute;
-  top:28px;left:52px;right:52px;height:2px;
+  top:28px;left:36px;right:36px;height:2px;
   background:var(--line);z-index:0;
 }
 .progress-fill{
-  position:absolute;top:28px;left:52px;
+  position:absolute;top:28px;left:36px;
   height:2px;background:var(--forest);
   z-index:1;transition:width .5s ease;
+  max-width:calc(100% - 72px);
 }
 .stage{display:flex;flex-direction:column;align-items:center;gap:8px;z-index:2}
 .stage-dot{
@@ -267,6 +276,40 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--pistachio)
 /* ── FOOTER ── */
 .footer{text-align:center;font-size:12px;color:var(--muted);margin-top:32px;padding-top:20px;border-top:1px solid var(--line)}
 
+/* ── ITEM FORM / CART ── */
+.size-btn{height:auto;min-height:56px;padding:9px 4px;line-height:1.25}
+.size-btn small{display:block;font-size:12px;font-weight:600;margin-top:2px;opacity:.9}
+.item-hero{height:150px;background:var(--white);border:1px solid var(--line);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:64px;margin-bottom:20px}
+.stepper{display:inline-flex;align-items:center;background:var(--white);border:1.5px solid var(--line);border-radius:var(--radius-pill)}
+.stepper button{width:46px;height:44px;border:none;background:none;font-size:22px;line-height:1;color:var(--forest);cursor:pointer;font-family:'Inter',sans-serif}
+.stepper button:disabled{color:var(--line);cursor:default}
+.stepper .q{min-width:34px;text-align:center;font-weight:600;font-size:15px}
+.cart-btn{position:relative;background:none;border:none;font-size:24px;cursor:pointer;padding:4px 6px}
+.cart-badge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--raspberry);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif}
+.cart-card{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:4px 16px;margin-bottom:12px}
+.cart-row{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.cart-row:last-child{border-bottom:none}
+.cart-emoji{width:48px;height:48px;border-radius:12px;background:var(--pistachio);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.cart-info{flex:1;min-width:0}
+.cart-name{font-size:14px;font-weight:600;color:var(--ink)}
+.cart-detail{font-size:12px;color:var(--muted);margin-top:2px}
+.cart-note{font-size:12px;color:var(--muted);font-style:italic;margin-top:4px;word-break:break-word}
+.cart-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.cart-price{font-size:14px;font-weight:600;color:var(--ink)}
+.mini-stepper{display:inline-flex;align-items:center;border:1.5px solid var(--line);border-radius:var(--radius-pill)}
+.mini-stepper button{width:30px;height:28px;border:none;background:none;font-size:16px;color:var(--forest);cursor:pointer;font-family:'Inter',sans-serif}
+.mini-stepper button:disabled{color:var(--line);cursor:default}
+.mini-stepper span{min-width:20px;text-align:center;font-size:13px;font-weight:600}
+.cart-remove{background:none;border:none;font-size:12px;color:var(--raspberry);cursor:pointer;font-family:'Inter',sans-serif;padding:0}
+.totals{background:var(--white);border:1px solid var(--line);border-radius:var(--radius-sm);padding:16px;margin:16px 0 24px}
+.totals-row{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:8px}
+.totals-row.total{border-top:1px solid var(--line);padding-top:12px;margin:4px 0 0;font-size:14px;font-weight:600;color:var(--ink)}
+.totals-row.total b{font-size:18px;color:var(--forest)}
+.section-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:10px}
+.summary-key{max-width:62%}
+.summary-key small{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.co-empty{text-align:center;padding:48px 16px;color:var(--muted);font-size:14px}
+
 /* ── SCREEN DOTS ── */
 .screen-dots{display:flex;gap:6px;justify-content:center;padding:12px 0 0}
 .sdot{width:6px;height:6px;border-radius:50%;background:var(--line);transition:all .2s;cursor:pointer}
@@ -276,284 +319,203 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--pistachio)
   .page{padding:24px 16px 40px}
   .display{font-size:28px}
 }
+
+/* ═══ Task 1–2 polish ═══ */
+[hidden]{display:none!important}
+.screen{min-height:calc(100vh - 160px);padding-top:72px}
+:focus-visible{outline:2px solid var(--forest);outline-offset:2px}
+.screen:focus,.screen:focus-visible{outline:none}
+.nav-actions{min-width:36px;justify-content:flex-end}
+.field-error{display:none;color:#B3261E;font-size:12px;margin-top:6px}
+.field.has-error .input{border-color:#B3261E}
+.field.has-error .field-error{display:block}
+.hint{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:var(--ink);color:#fff;padding:12px 18px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:200;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.site-footer{max-width:420px;margin:0 auto;padding:8px 20px 40px;text-align:center;font-size:12px;color:var(--muted);line-height:1.8}
+.site-footer a{color:var(--forest);font-weight:500;text-decoration:none}
+.site-footer a:hover{text-decoration:underline}
+.demo-label{text-align:center;font-size:11px;color:var(--muted);margin:-8px 0 10px}
+.btn[disabled]{opacity:.6;cursor:default;transform:none}
+.cat-tab{font-family:'Inter',sans-serif}
+.state-tab{font-family:'Inter',sans-serif}
+.menu-card:focus-visible{outline-offset:3px}
+.menu-card[hidden]{display:none!important}
+#pay-options{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+.pay-opt{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--white);border:2px solid var(--line);border-radius:var(--radius-sm);cursor:pointer;transition:border-color .15s}
+.pay-opt.active{border-color:var(--forest)}
+.pay-ic{font-size:22px}
+.pay-name{font-size:14px;font-weight:600;color:var(--ink)}
+.pay-sub{font-size:12px;color:var(--muted)}
+.pay-dot{margin-left:auto;width:18px;height:18px;border-radius:50%;background:var(--line);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pay-opt.active .pay-dot{background:var(--forest)}
+.pay-opt.active .pay-dot::after{content:'';width:5px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.notify-done{display:flex;gap:12px;align-items:flex-start;font-size:14px;color:var(--ink);line-height:1.5}
+.notify-done .ok{width:24px;height:24px;border-radius:50%;background:var(--forest);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.link-btn{background:none;border:none;color:var(--forest);font-weight:600;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;padding:0;margin-top:6px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
-
-<!-- NAV -->
-<nav class="nav">
-  <a class="nav-brand" onclick="goTo(0)" style="cursor:pointer">
-    <div class="nav-logo">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#FFFDF8" stroke-width="2.5"><path d="M12 2L2 19h20L12 2z"/><circle cx="12" cy="8" r="1.5" fill="#C0335E" stroke="none"/></svg>
-    </div>
+<nav class="nav" aria-label="Main">
+  <a class="nav-brand" href="#/" aria-label="Oodel home">
+    <div class="nav-logo"><svg viewBox="0 0 24 24" fill="none" stroke="#FFFDF8" stroke-width="2.5"><path d="M12 2L2 19h20L12 2z"/><circle cx="12" cy="8" r="1.5" fill="#C0335E" stroke="none"/></svg></div>
     <span class="nav-wordmark">Oodel<span>.</span></span>
   </a>
-  <div class="nav-actions">
-    <button class="nav-btn nav-btn-ghost" onclick="goTo(0)">Track order</button>
-  </div>
+  <div class="nav-actions"><button class="cart-btn" onclick="goTo(3)" aria-label="Open cart">🛒<span id="cart-badge" class="cart-badge" style="display:none">0</span></button></div>
 </nav>
 
-<!-- SCREEN DOTS -->
-<div class="screen-dots" id="dots" style="position:fixed;top:62px;left:0;right:0;z-index:99;background:rgba(232,240,232,0.9);backdrop-filter:blur(8px);padding:8px 0">
-  <div class="sdot active" onclick="goTo(0)"></div>
-  <div class="sdot" onclick="goTo(1)"></div>
-  <div class="sdot" onclick="goTo(2)"></div>
-  <div class="sdot" onclick="goTo(3)"></div>
-  <div class="sdot" onclick="goTo(4)"></div>
-  <div class="sdot" onclick="goTo(5)"></div>
-</div>
+<main id="app">
 
-<!-- ─── SCREEN 0: LOGIN ─── -->
-<div class="screen active" id="screen-0" style="padding-top:96px">
+<!-- 0 · WELCOME / ORDER LOOKUP -->
+<div class="screen active" id="screen-0">
   <div class="page">
-    <div style="text-align:center;margin-bottom:32px">
+    <div style="text-align:center;margin-bottom:28px">
       <div style="width:64px;height:64px;border-radius:50%;background:var(--forest);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFDF8" stroke-width="2.5"><path d="M12 2L2 19h20L12 2z"/><circle cx="12" cy="8" r="1.5" fill="#C0335E" stroke="none"/></svg>
       </div>
-      <div class="display">Welcome to Oodel</div>
-      <div class="subtitle">Track your order or browse our fresh-baked menu.</div>
+      <h1 class="display">Welcome to Oodel</h1>
+      <div class="subtitle" style="margin-bottom:0">Track your order or browse our fresh-baked menu.</div>
     </div>
-
-    <div class="error-box" id="login-error" style="display:none">
-      <span>⚠️</span>
-      <span>Order not found. Please check your order number and try again.</span>
-    </div>
-
-    <div class="field">
-      <label class="label">Email address</label>
-      <input class="input" type="email" placeholder="your@email.com" id="login-email">
-    </div>
-    <div class="field">
-      <label class="label">Order number</label>
-      <input class="input" type="text" placeholder="e.g. CK-2481" id="login-order">
-    </div>
-
-    <button class="btn btn-primary" onclick="handleLogin()">Track my order</button>
+    <div class="error-box" id="login-error" role="alert" style="display:none"><span>⚠️</span><span id="login-error-text"></span></div>
+    <div class="field" id="f-login-email"><label class="label" for="login-email">Email address</label><input class="input" type="email" id="login-email" placeholder="your@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')handleLookup()"><div class="field-error" id="err-login-email" role="alert"></div></div>
+    <div class="field" id="f-login-order"><label class="label" for="login-order">Order number</label><input class="input" type="text" id="login-order" placeholder="e.g. CK-2481" autocomplete="off" onkeydown="if(event.key==='Enter')handleLookup()"><div class="hint">Demo: try order <b>CK-2481</b> with any email.</div><div class="field-error" id="err-login-order" role="alert"></div></div>
+    <button class="btn btn-primary" onclick="handleLookup()">Track my order</button>
     <div class="divider">or</div>
     <button class="btn btn-secondary" onclick="goTo(1)">Browse our menu</button>
-
-    <div class="footer">Guest checkout available · No account needed</div>
+    <div class="hint" style="text-align:center;margin-top:20px">Guest checkout available · No account needed</div>
   </div>
 </div>
 
-<!-- ─── SCREEN 1: MENU ─── -->
-<div class="screen" id="screen-1" style="padding-top:96px">
+<!-- 1 · MENU -->
+<div class="screen" id="screen-1">
   <div class="page">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-      <div class="display" style="margin:0">Our Menu</div>
-      <div style="font-size:22px;cursor:pointer">🛒</div>
-    </div>
-
+    <h1 class="display" style="margin-bottom:20px">Our Menu</h1>
     <div class="search-bar">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7A6E77" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-      <input placeholder="Search cakes, pastries…">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7A6E77" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input type="search" id="menu-search" placeholder="Search cakes, pastries…" aria-label="Search the menu" oninput="applyFilters()" autocomplete="off">
     </div>
-
-    <div class="cat-tabs">
-      <div class="cat-tab active">All</div>
-      <div class="cat-tab">Cakes</div>
-      <div class="cat-tab">Cupcakes</div>
-      <div class="cat-tab">Pastries</div>
-      <div class="cat-tab">Donuts</div>
+    <div class="cat-tabs" role="group" aria-label="Categories">
+      <button class="cat-tab active" data-cat="all" aria-pressed="true" onclick="pickCat(this)">All</button>
+      <button class="cat-tab" data-cat="cakes" aria-pressed="false" onclick="pickCat(this)">Cakes</button>
+      <button class="cat-tab" data-cat="cupcakes" aria-pressed="false" onclick="pickCat(this)">Cupcakes</button>
+      <button class="cat-tab" data-cat="pastries" aria-pressed="false" onclick="pickCat(this)">Pastries</button>
+      <button class="cat-tab" data-cat="donuts" aria-pressed="false" onclick="pickCat(this)">Donuts</button>
     </div>
-
-    <div class="menu-grid">
-      <div class="menu-card" data-category="cakes" onclick="goTo(2)">
+    <div class="menu-grid" id="menu-grid">
+      <div class="menu-card" role="button" tabindex="0" data-category="cakes" data-name="strawberry cake cakes" onclick="openItem('strawberry')">
         <div class="menu-img">🍓</div>
-        <div class="menu-body">
-          <div class="menu-name">Strawberry Cake</div>
-          <div class="menu-price">$24.00</div>
-        </div>
+        <div class="menu-body"><div class="menu-name">Strawberry Cake</div><div class="menu-price">From $18.00</div></div>
       </div>
-      <div class="menu-card" data-category="cakes" onclick="goTo(2)">
+      <div class="menu-card" role="button" tabindex="0" data-category="cakes" data-name="chocolate cake cakes" onclick="openItem('chocolate')">
         <div class="menu-img">🍫</div>
-        <div class="menu-body">
-          <div class="menu-name">Chocolate Cake</div>
-          <div class="menu-price">$22.00</div>
-        </div>
+        <div class="menu-body"><div class="menu-name">Chocolate Cake</div><div class="menu-price">From $16.00</div></div>
       </div>
-      <div class="menu-card" data-category="cupcakes" onclick="goTo(2)">
+      <div class="menu-card" role="button" tabindex="0" data-category="cupcakes" data-name="vanilla cupcake cupcakes" onclick="openItem('cupcake')">
         <div class="menu-img">🧁</div>
-        <div class="menu-body">
-          <div class="menu-name">Vanilla Cupcake</div>
-          <div class="menu-price">$14.00</div>
-        </div>
+        <div class="menu-body"><div class="menu-name">Vanilla Cupcake</div><div class="menu-price">From $14.00</div></div>
       </div>
-      <div class="menu-card" data-category="cakes" onclick="goTo(2)">
+      <div class="menu-card" role="button" tabindex="0" data-category="cakes" data-name="red velvet cake cakes" onclick="openItem('redvelvet')">
         <div class="menu-img">❤️</div>
-        <div class="menu-body">
-          <div class="menu-name">Red Velvet Cake</div>
-          <div class="menu-price">$26.00</div>
-        </div>
+        <div class="menu-body"><div class="menu-name">Red Velvet Cake</div><div class="menu-price">From $20.00</div></div>
       </div>
-      <div class="menu-card" data-category="pastries" onclick="goTo(2)">
+      <div class="menu-card" role="button" tabindex="0" data-category="pastries" data-name="croissant pastries" onclick="openItem('croissant')">
         <div class="menu-img">🥐</div>
-        <div class="menu-body">
-          <div class="menu-name">Croissant</div>
-          <div class="menu-price">$6.00</div>
-        </div>
+        <div class="menu-body"><div class="menu-name">Croissant</div><div class="menu-price">$6.00 each</div></div>
       </div>
-      <div class="menu-card unavailable" data-category="pastries">
+      <div class="menu-card unavailable" aria-disabled="true" data-category="pastries" data-name="lemon tart pastries">
         <div class="menu-img" style="background:#f0f0f0">🍋</div>
-        <div class="menu-body">
-          <div class="menu-name">Lemon Tart</div>
-          <div class="menu-unavailable">Unavailable today</div>
-          <div style="font-size:10px;color:var(--muted)">Missing ingredient</div>
-        </div>
+        <div class="menu-body"><div class="menu-name">Lemon Tart</div><div class="menu-unavailable">Unavailable today</div><div style="font-size:10px;color:var(--muted)">Missing ingredient</div></div>
       </div>
     </div>
-    <div class="footer">Oodel · Northridge</div>
+    <div id="menu-empty" class="co-empty" hidden>
+      <div style="font-size:40px;margin-bottom:12px">🍩</div>
+      <div class="t" style="font-weight:600;color:var(--ink);margin-bottom:6px"></div>
+      <div class="s"></div>
+    </div>
   </div>
 </div>
 
-<!-- ─── SCREEN 2: ORDER FORM ─── -->
-<div class="screen" id="screen-2" style="padding-top:96px">
+<!-- 2 · ITEM FORM (rendered by JS for whichever item is open) -->
+<div class="screen" id="screen-2"><div class="page" id="item-form"></div></div>
+
+<!-- 3 · CART + CHECKOUT -->
+<div class="screen" id="screen-3">
   <div class="page">
     <button class="back-btn" onclick="goTo(1)">← Back to menu</button>
-    <div class="display">Customize your order</div>
-    <div class="subtitle">Choose your size, flavor, and pickup time.</div>
+    <h1 class="display">Checkout</h1>
+    <div class="subtitle">Review your order and choose how to pay.</div>
 
-    <div style="height:160px;background:var(--pistachio);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:56px;margin-bottom:20px">🍓</div>
+    <div id="co-empty" class="co-empty" style="display:none">
+      <div style="font-size:44px;margin-bottom:12px">🛒</div>
+      <div style="font-weight:600;color:var(--ink);margin-bottom:6px">Your cart is empty</div>
+      <div style="margin-bottom:20px">Add something fresh from the menu.</div>
+      <button class="btn btn-primary" onclick="goTo(1)">Browse our menu</button>
+    </div>
 
-    <div class="field">
-      <label class="label">Size</label>
-      <div class="size-options">
-        <button class="size-btn" onclick="selectSize(this)">Small</button>
-        <button class="size-btn active" onclick="selectSize(this)">Medium</button>
-        <button class="size-btn" onclick="selectSize(this)">Large</button>
+    <div id="co-main">
+      <div class="section-title">Your order</div>
+      <div class="cart-card" id="co-items"></div>
+      <button class="btn btn-secondary" onclick="goTo(1)" style="margin-top:0;height:46px">+ Add more items</button>
+
+      <div class="totals">
+        <div class="totals-row"><span>Subtotal</span><span id="co-sub">$0.00</span></div>
+        <div class="totals-row"><span>Sales tax (9.5%)</span><span id="co-tax">$0.00</span></div>
+        <div class="totals-row total"><span>Total</span><b id="co-total">$0.00</b></div>
       </div>
-    </div>
 
-    <div class="field">
-      <label class="label">Flavor</label>
-      <select class="input input-select">
-        <option value="">Select a flavor</option>
-        <option>Strawberry</option>
-        <option>Vanilla</option>
-        <option>Chocolate</option>
-        <option>Lemon</option>
-        <option>Red Velvet</option>
-      </select>
-    </div>
+      <div class="section-title">Contact</div>
+      <div class="field" id="f-co-name"><label class="label" for="co-name">Full name</label><input class="input" id="co-name" autocomplete="name" placeholder="Your name"><div class="field-error" id="err-co-name" role="alert"></div></div>
+      <div class="field" id="f-co-email"><label class="label" for="co-email">Email</label><input class="input" type="email" id="co-email" autocomplete="email" placeholder="your@email.com"><div class="hint">Used to look up your order.</div><div class="field-error" id="err-co-email" role="alert"></div></div>
+      <div class="field" id="f-co-phone"><label class="label" for="co-phone">Phone <span style="font-weight:400;color:var(--muted)">(optional)</span></label><input class="input" type="tel" id="co-phone" autocomplete="tel" placeholder="(818) 555-0100"><div class="field-error" id="err-co-phone" role="alert"></div></div>
 
-    <div class="field">
-      <label class="label">Pickup date</label>
-      <input class="input" type="date">
-    </div>
+      <div class="section-title" style="margin-top:8px">Pickup · Northridge</div>
+      <div style="display:flex;gap:12px;margin-bottom:8px">
+        <div class="field" id="f-co-date" style="flex:1;margin-bottom:8px"><label class="label" for="co-date">Date</label><input class="input" type="date" id="co-date" onchange="buildTimes()"><div class="field-error" id="err-co-date" role="alert"></div></div>
+        <div class="field" id="f-co-time" style="flex:1;margin-bottom:8px"><label class="label" for="co-time">Time</label><select class="input input-select" id="co-time"></select><div class="field-error" id="err-co-time" role="alert"></div></div>
+      </div>
+      <div class="hint" style="margin-bottom:24px">Same-day orders need at least 1 hour. Open 9:00 AM – 5:30 PM.</div>
 
-    <div class="field">
-      <label class="label">Message on cake <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
-      <textarea class="input input-tall" placeholder="e.g. Happy Birthday Sarah! 🎂"></textarea>
-    </div>
+      <div class="section-title">Payment method</div>
+      <div id="pay-options" role="radiogroup" aria-label="Payment method">
+        <div class="pay-opt active" role="radio" aria-checked="true" tabindex="0" data-method="card" onclick="selectPay(this)">
+          <span class="pay-ic">💳</span><div><div class="pay-name">Credit / Debit card</div><div class="pay-sub">Visa, Mastercard, Amex</div></div><span class="pay-dot"></span>
+        </div>
+        <div class="pay-opt" role="radio" aria-checked="false" tabindex="0" data-method="apple" onclick="selectPay(this)">
+          <span class="pay-ic">🍎</span><div><div class="pay-name">Apple Pay</div><div class="pay-sub">Touch ID or Face ID</div></div><span class="pay-dot"></span>
+        </div>
+        <div class="pay-opt" role="radio" aria-checked="false" tabindex="0" data-method="google" onclick="selectPay(this)">
+          <span class="pay-ic">🌐</span><div><div class="pay-name">Google Pay</div><div class="pay-sub">Pay with Google Wallet</div></div><span class="pay-dot"></span>
+        </div>
+        <div class="pay-opt" role="radio" aria-checked="false" tabindex="0" data-method="cash" onclick="selectPay(this)">
+          <span class="pay-ic">💵</span><div><div class="pay-name">Cash on pickup</div><div class="pay-sub">Pay when you collect your order</div></div><span class="pay-dot"></span>
+        </div>
+      </div>
 
-    <button class="btn btn-primary" onclick="goTo(3)" style="margin-top:8px">Continue to payment →</button>
+      <div id="card-fields">
+        <div class="field" id="f-cc-num"><label class="label" for="cc-num">Card number</label><input class="input" id="cc-num" inputmode="numeric" autocomplete="cc-number" placeholder="1234 5678 9012 3456" maxlength="23" oninput="fmtCard(this)"><div class="field-error" id="err-cc-num" role="alert"></div></div>
+        <div style="display:flex;gap:12px">
+          <div class="field" id="f-cc-exp" style="flex:1"><label class="label" for="cc-exp">Expiry</label><input class="input" id="cc-exp" inputmode="numeric" autocomplete="cc-exp" placeholder="MM / YY" maxlength="7" oninput="fmtExp(this)"><div class="field-error" id="err-cc-exp" role="alert"></div></div>
+          <div class="field" id="f-cc-cvv" style="flex:1"><label class="label" for="cc-cvv">CVV</label><input class="input" id="cc-cvv" inputmode="numeric" autocomplete="cc-csc" placeholder="123" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'')"><div class="field-error" id="err-cc-cvv" role="alert"></div></div>
+        </div>
+        <div class="field" id="f-cc-name"><label class="label" for="cc-name">Name on card</label><input class="input" id="cc-name" autocomplete="cc-name" placeholder="Name on card"><div class="hint">Demo mode, no real payment is taken. Try 4242 4242 4242 4242 with any future date.</div><div class="field-error" id="err-cc-name" role="alert"></div></div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:8px;margin:4px 0 20px;padding:10px 14px;background:var(--white);border:1px solid var(--line);border-radius:var(--radius-sm)">
+        <span style="font-size:14px">🔒</span><span style="font-size:12px;color:var(--muted)">Your payment is secured with 256-bit SSL encryption</span>
+      </div>
+      <button class="btn btn-primary" id="co-pay" onclick="placeOrder()">Pay</button>
+    </div>
   </div>
 </div>
 
-<!-- ─── SCREEN 3: PAYMENT ─── -->
-<div class="screen" id="screen-3" style="padding-top:96px">
-  <div class="page">
-    <button class="back-btn" onclick="goTo(2)">← Back to order</button>
-    <div class="display">Payment</div>
-    <div class="subtitle">Choose how you'd like to pay.</div>
-
-    <!-- Order summary mini -->
-    <div style="background:var(--pistachio);border-radius:var(--radius-sm);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
-      <div style="font-size:13px;color:var(--muted)">Strawberry Cake (Medium)</div>
-      <div style="font-size:15px;font-weight:600;color:var(--ink)">$24.00</div>
-    </div>
-
-    <!-- Payment method selector -->
-    <div class="label" style="margin-bottom:12px">Payment method</div>
-
-    <div id="pay-options" style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">
-
-      <div class="pay-opt active" onclick="selectPay(this)" style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--white);border:2px solid var(--forest);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s">
-        <span style="font-size:22px">💳</span>
-        <div>
-          <div style="font-size:14px;font-weight:600;color:var(--ink)">Credit / Debit card</div>
-          <div style="font-size:12px;color:var(--muted)">Visa, Mastercard, Amex</div>
-        </div>
-        <div style="margin-left:auto;width:18px;height:18px;border-radius:50%;background:var(--forest);display:flex;align-items:center;justify-content:center">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-      </div>
-
-      <div class="pay-opt" onclick="selectPay(this)" style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--white);border:2px solid var(--line);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s">
-        <span style="font-size:22px">🍎</span>
-        <div>
-          <div style="font-size:14px;font-weight:600;color:var(--ink)">Apple Pay</div>
-          <div style="font-size:12px;color:var(--muted)">Touch ID or Face ID</div>
-        </div>
-        <div style="margin-left:auto;width:18px;height:18px;border-radius:50%;background:var(--line)"></div>
-      </div>
-
-      <div class="pay-opt" onclick="selectPay(this)" style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--white);border:2px solid var(--line);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s">
-        <span style="font-size:22px">🌐</span>
-        <div>
-          <div style="font-size:14px;font-weight:600;color:var(--ink)">Google Pay</div>
-          <div style="font-size:12px;color:var(--muted)">Pay with Google Wallet</div>
-        </div>
-        <div style="margin-left:auto;width:18px;height:18px;border-radius:50%;background:var(--line)"></div>
-      </div>
-
-      <div class="pay-opt" onclick="selectPay(this)" style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--white);border:2px solid var(--line);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s">
-        <span style="font-size:22px">💵</span>
-        <div>
-          <div style="font-size:14px;font-weight:600;color:var(--ink)">Cash on pickup</div>
-          <div style="font-size:12px;color:var(--muted)">Pay when you collect your order</div>
-        </div>
-        <div style="margin-left:auto;width:18px;height:18px;border-radius:50%;background:var(--line)"></div>
-      </div>
-
-    </div>
-
-    <!-- Card details (shown when card selected) -->
-    <div id="card-fields">
-      <div class="field">
-        <label class="label">Card number</label>
-        <input class="input" type="text" placeholder="1234 5678 9012 3456" maxlength="19">
-      </div>
-      <div style="display:flex;gap:12px">
-        <div class="field" style="flex:1">
-          <label class="label">Expiry</label>
-          <input class="input" type="text" placeholder="MM / YY" maxlength="7">
-        </div>
-        <div class="field" style="flex:1">
-          <label class="label">CVV</label>
-          <input class="input" type="text" placeholder="123" maxlength="3">
-        </div>
-      </div>
-      <div class="field">
-        <label class="label">Name on card</label>
-        <input class="input" type="text" placeholder="Vandan Patel">
-      </div>
-    </div>
-
-    <!-- Secure badge -->
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;padding:10px 14px;background:var(--pistachio);border-radius:var(--radius-sm)">
-      <span style="font-size:14px">🔒</span>
-      <span style="font-size:12px;color:var(--muted)">Your payment is secured with 256-bit SSL encryption</span>
-    </div>
-
-    <button class="btn btn-primary" onclick="goTo(4)">Pay $24.00</button>
-  </div>
-</div>
-
-<!-- ─── SCREEN 4: CONFIRMATION ─── -->
-<div class="screen" id="screen-4" style="padding-top:96px">
+<!-- 4 · CONFIRMATION -->
+<div class="screen" id="screen-4">
   <div class="page" style="text-align:center">
     <div class="confirm-icon">✓</div>
-    <div class="display">Order confirmed!</div>
-    <div class="subtitle">Your order CK-2481 has been received. We'll start baking it shortly.</div>
-
-    <div class="card" style="text-align:left;margin-top:8px">
-      <div class="summary-row"><span class="summary-key">Item</span><span class="summary-val">Strawberry Cake (M)</span></div>
-      <div class="summary-row"><span class="summary-key">Pickup</span><span class="summary-val">Oct 13 · 11:35 am</span></div>
-      <div class="summary-row"><span class="summary-key">Location</span><span class="summary-val">Northridge</span></div>
-      <div class="summary-row"><span class="summary-key">Total</span><span class="summary-val">$24.00</span></div>
-    </div>
-
+    <h1 class="display">Order confirmed!</h1>
+    <div class="subtitle" id="confirm-sub"></div>
+    <div class="card" id="confirm-summary" style="text-align:left;margin-top:8px"></div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
       <button class="btn btn-primary" onclick="goTo(5)">Track my order</button>
       <button class="btn btn-secondary" onclick="goTo(1)">Back to menu</button>
@@ -561,150 +523,362 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--pistachio)
   </div>
 </div>
 
-<!-- ─── SCREEN 5: TRACKER ─── -->
-<div class="screen" id="screen-5" style="padding-top:96px">
+<!-- 5 · TRACKER -->
+<div class="screen" id="screen-5">
   <div class="page">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <div style="font-size:13px;color:var(--muted)">Order CK-2481</div>
+      <div style="font-size:13px;color:var(--muted)" id="trk-order">Order</div>
       <div style="font-size:13px;color:var(--muted)">Northridge</div>
     </div>
-
-    <div class="state-tabs">
-      <div class="state-tab active" onclick="setTrackerState(0,this)">Placed</div>
-      <div class="state-tab" onclick="setTrackerState(1,this)">Baking</div>
-      <div class="state-tab" onclick="setTrackerState(2,this)">Ready</div>
+    <div class="state-tabs" role="group" aria-label="Preview each stage">
+      <button class="state-tab active" aria-pressed="true" onclick="setTrackerState(0)">Placed</button>
+      <button class="state-tab" aria-pressed="false" onclick="setTrackerState(1)">Baking</button>
+      <button class="state-tab" aria-pressed="false" onclick="setTrackerState(2)">Ready</button>
     </div>
-
+    <div class="demo-label">Demo controls · preview each stage (in the real app the baker updates this)</div>
     <div class="card">
-      <div class="eta-display">
-        <span class="eta-num" id="eta-num">53</span>
-        <span class="eta-unit" id="eta-unit">minutes away</span>
-      </div>
-      <div class="eta-sub">Pickup by 11:35 am · Northridge</div>
-
-      <button class="btn btn-primary" style="margin-bottom:20px">Refresh status</button>
-
+      <div class="eta-display"><span class="eta-num" id="eta-num">53</span><span class="eta-unit" id="eta-unit">minutes away</span></div>
+      <div class="eta-sub" id="trk-pickup"></div>
+      <button class="btn btn-primary" id="refresh-btn" style="margin-bottom:20px" onclick="refreshStatus(this)">Refresh status</button>
       <div class="progress-track">
         <div class="progress-fill" id="progress-fill" style="width:0%"></div>
-        <div class="stage">
-          <div class="stage-dot active" id="dot-0">🧾</div>
-          <div class="stage-label active" id="lbl-0">Placed</div>
-        </div>
-        <div class="stage">
-          <div class="stage-dot" id="dot-1">👨‍🍳</div>
-          <div class="stage-label" id="lbl-1">Baking</div>
-        </div>
-        <div class="stage">
-          <div class="stage-dot" id="dot-2">✅</div>
-          <div class="stage-label" id="lbl-2">Ready</div>
-        </div>
+        <div class="stage"><div class="stage-dot active" id="dot-0">🧾</div><div class="stage-label active" id="lbl-0">Placed</div></div>
+        <div class="stage"><div class="stage-dot" id="dot-1">👨‍🍳</div><div class="stage-label" id="lbl-1">Baking</div></div>
+        <div class="stage"><div class="stage-dot" id="dot-2">✅</div><div class="stage-label" id="lbl-2">Ready</div></div>
       </div>
-
       <div class="divider-line"></div>
-
       <div class="status-title" id="status-title">Order placed</div>
-      <div class="status-body" id="status-body">We received your order at 10:42 am. It goes to the pastry bench in about eight minutes.</div>
-      <div class="tag">Paid · Pickup in store</div>
+      <div class="status-body" id="status-body"></div>
+      <div class="tag" id="trk-tag">Paid · Pickup in store</div>
     </div>
-
-    <div class="email-block">
-      <div class="email-block-title">Get notified when your order is ready</div>
-      <div class="email-row">
-        <input class="email-input" type="email" placeholder="your@email.com">
-        <button class="email-btn">Notify me</button>
+    <div class="email-block" id="notify-block">
+      <div id="notify-form">
+        <div class="email-block-title">Get notified when your order is ready</div>
+        <div id="f-notify"><div class="email-row">
+          <input class="email-input" type="email" id="notify-email" placeholder="your@email.com" aria-label="Email for notifications" autocomplete="email" onkeydown="if(event.key==='Enter')notifyMe()">
+          <button class="email-btn" onclick="notifyMe()">Notify me</button>
+        </div><div class="field-error" id="err-notify" role="alert"></div></div>
+      </div>
+      <div id="notify-done" class="notify-done" hidden>
+        <span class="ok">✓</span>
+        <div><div><b>You're on the list.</b> We'll email <span id="notify-addr"></span> when your order is ready.</div><button class="link-btn" onclick="changeNotify()">Use a different email</button></div>
       </div>
     </div>
-
-    <div class="footer">Oodel · Northridge · Questions? Call (818) 555-0119</div>
   </div>
 </div>
 
+<!-- 6 · NOT FOUND -->
+<div class="screen" id="screen-6">
+  <div class="page" style="text-align:center">
+    <div style="font-size:56px;margin-bottom:8px">🥧</div>
+    <h1 class="display">Page not found</h1>
+    <div class="subtitle">We couldn't find that page. The link may be mistyped or the page may have moved.</div>
+    <button class="btn btn-primary" onclick="goTo(1)">Back to menu</button>
+    <button class="btn btn-secondary" onclick="goTo(0)">Go to home</button>
+  </div>
+</div>
+
+</main>
+
+<footer class="site-footer">
+  Oodel · Northridge · Questions? Call <a href="tel:+18185550119">(818) 555-0119</a><br>
+  <a href="baker.html#/login">Staff login</a>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
-const screenNames = ['Login','Menu','Order Form','Payment','Confirmation','Tracker'];
+'use strict';
+// ═══ DATA — Harut's API will replace these with real menu items and prices ═══
+const TAX=0.095, STORE='Northridge';
+const MENU={
+  strawberry:{name:'Strawberry Cake',emoji:'🍓',type:'cake',flavor:'Strawberry',blurb:'Fresh strawberries and cream between soft vanilla sponge.',sizes:{Small:18,Medium:24,Large:32}},
+  chocolate:{name:'Chocolate Cake',emoji:'🍫',type:'cake',flavor:'Chocolate',blurb:'Rich chocolate sponge finished with silky ganache.',sizes:{Small:16,Medium:22,Large:28}},
+  redvelvet:{name:'Red Velvet Cake',emoji:'❤️',type:'cake',flavor:'Red Velvet',blurb:'Velvety cocoa sponge with cream cheese frosting.',sizes:{Small:20,Medium:26,Large:34}},
+  cupcake:{name:'Vanilla Cupcake',emoji:'🧁',type:'box',blurb:'Soft vanilla cupcakes with buttercream. Sold by the box.',packs:{'Box of 4':14,'Box of 6':20,'Box of 12':36}},
+  croissant:{name:'Croissant',emoji:'🥐',type:'piece',blurb:'Flaky, buttery and baked fresh every morning.',price:6,variants:['Butter','Almond','Chocolate']}
+};
+const CAKE_FLAVORS=['Strawberry','Vanilla','Chocolate','Lemon','Red Velvet'];
+const SEED={id:'CK-2481',demo:true,email:null,name:'Demo customer',pickup:'11:35 am',placedAt:'10:42 am',pay:'card',stage:0,items:[]};
 
+// ═══ HELPERS ═══
+const $=id=>document.getElementById(id);
+const money=n=>'$'+n.toFixed(2);
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const validEmail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
+const unitPrice=(it,c)=>it.type==='cake'?it.sizes[c.opt]:it.type==='box'?it.packs[c.opt]:it.price;
+const timeNow=()=>new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+const todayStr=()=>{const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());};
+const store={
+  get(k,d){try{const v=sessionStorage.getItem('oodel_'+k);return v?JSON.parse(v):d;}catch(e){return d;}},
+  set(k,v){try{sessionStorage.setItem('oodel_'+k,JSON.stringify(v));}catch(e){}}
+};
+function setErr(key,msg){
+  const f=$('f-'+key),e=$('err-'+key); if(!f||!e) return;
+  f.classList.toggle('has-error',!!msg); e.textContent=msg||'';
+  const i=f.querySelector('input,select'); if(i) i.setAttribute('aria-invalid',msg?'true':'false');
+}
+function focusFirstError(){
+  const el=document.querySelector('.screen.active .has-error input, .screen.active .has-error select');
+  if(el){el.scrollIntoView({block:'center',behavior:'smooth'});el.focus({preventScroll:true});}
+}
+let toastT;
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600);}
+
+// ═══ STATE (kept across refresh for this browser session) ═══
+let cart=store.get('cart',[]), orders=store.get('orders',[]);
+let currentOrder=store.get('current',null), lastOrderId=store.get('last',null);
+let cur=null, payMethod='card', paying=false, activeCat='all';
+const findOrder=id=>id===SEED.id?SEED:orders.find(o=>o.id===id);
+const saveCart=()=>store.set('cart',cart), saveOrders=()=>store.set('orders',orders);
+
+// ═══ ROUTER — #/ · #/menu · #/item/:id · #/checkout · #/confirmation · #/track · anything else = 404 ═══
+const TITLES={0:'Oodel — Order fresh, pick up in Northridge',1:'Menu · Oodel',2:'Customize your order · Oodel',3:'Checkout · Oodel',4:'Order confirmed · Oodel',5:'Track your order · Oodel',6:'Page not found · Oodel'};
 function goTo(n){
+  const h=n===0?'#/':n===1?'#/menu':(n===2&&cur)?'#/item/'+cur.id:n===3?'#/checkout':n===4?'#/confirmation':n===5?'#/track':'#/menu';
+  if(location.hash===h) route(); else location.hash=h;
+}
+function show(n){
   document.querySelectorAll('.screen').forEach((s,i)=>s.classList.toggle('active',i===n));
-  document.querySelectorAll('.sdot').forEach((d,i)=>d.classList.toggle('active',i===n));
-  window.scrollTo({top:0,behavior:'smooth'});
+  document.title=TITLES[n]; window.scrollTo(0,0);
+  const sc=$('screen-'+n); sc.setAttribute('tabindex','-1'); sc.focus({preventScroll:true});
 }
-
-function handleLogin(){
-  const order = document.getElementById('login-order').value.trim();
-  const email = document.getElementById('login-email').value.trim();
-  if(!order || !email){
-    document.getElementById('login-error').style.display='flex';
-    return;
+function route(){
+  const h=location.hash.replace(/^#/,'')||'/'; let m;
+  if(h==='/') return show(0);
+  if(h==='/menu') return show(1);
+  if((m=h.match(/^\/item\/([a-z]+)$/))){
+    if(!MENU[m[1]]) return show(6);
+    if(!cur||cur.id!==m[1]) initItem(m[1]);
+    renderItemForm(); return show(2);
   }
-  document.getElementById('login-error').style.display='none';
-  goTo(5);
+  if(h==='/checkout'){renderCheckout();return show(3);}
+  if(h==='/confirmation'){
+    if(!lastOrderId||!findOrder(lastOrderId)){location.replace('#/menu');return;}
+    renderConfirmation(); return show(4);
+  }
+  if(h==='/track'){
+    if(!currentOrder||!findOrder(currentOrder)){location.replace('#/');return;}
+    renderTracker(); return show(5);
+  }
+  show(6);
+}
+window.addEventListener('hashchange',route);
+
+// ═══ WELCOME / ORDER LOOKUP ═══
+function handleLookup(){
+  const email=$('login-email').value.trim(), raw=$('login-order').value.trim().toUpperCase();
+  $('login-error').style.display='none'; setErr('login-email',''); setErr('login-order','');
+  let bad=false;
+  if(!validEmail(email)){setErr('login-email','Enter a valid email address.');bad=true;}
+  const m=raw.match(/^CK-?(\d{4})$/);
+  if(!raw){setErr('login-order','Enter your order number.');bad=true;}
+  else if(!m){setErr('login-order','Order numbers look like CK-2481.');bad=true;}
+  if(bad){focusFirstError();return;}
+  const id='CK-'+m[1], o=findOrder(id);
+  if(!o||(!o.demo&&o.email&&o.email.toLowerCase()!==email.toLowerCase())){
+    $('login-error-text').textContent='We couldn’t find order '+id+' for that email. Check the details and try again.';
+    $('login-error').style.display='flex'; return;
+  }
+  currentOrder=id; store.set('current',id); goTo(5);
 }
 
-function selectSize(el){
-  document.querySelectorAll('.size-btn').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
+// ═══ MENU: category tabs + search ═══
+function pickCat(btn){
+  activeCat=btn.dataset.cat;
+  document.querySelectorAll('.cat-tab').forEach(t=>{const on=t===btn;t.classList.toggle('active',on);t.setAttribute('aria-pressed',on);});
+  applyFilters();
 }
-
-const trackerStates=[
-  {num:'53',unit:'minutes away',fill:'0%',dots:['active','',''],title:'Order placed',body:'We received your order at 10:42 am. It goes to the pastry bench in about eight minutes.'},
-  {num:'21',unit:'minutes away',fill:'50%',dots:['done','active',''],title:'Now baking',body:'Your order is in the oven. We\'ll let you know as soon as it\'s ready for pickup.'},
-  {num:'Ready',unit:'',fill:'100%',dots:['done','done','active'],title:'Your order is ready!',body:'Head to Northridge to pick up your order. Show this screen at the counter.'}
-];
-
-function setTrackerState(idx,el){
-  document.querySelectorAll('.state-tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  const s=trackerStates[idx];
-  document.getElementById('eta-num').textContent=s.num;
-  document.getElementById('eta-unit').textContent=s.unit;
-  document.getElementById('progress-fill').style.width=s.fill;
-  document.getElementById('status-title').textContent=s.title;
-  document.getElementById('status-body').textContent=s.body;
-  for(let i=0;i<3;i++){
-    document.getElementById('dot-'+i).className='stage-dot '+(s.dots[i]||'');
-    document.getElementById('lbl-'+i).className='stage-label '+(s.dots[i]?'active':'');
+function applyFilters(){
+  const q=$('menu-search').value.trim().toLowerCase(); let shown=0;
+  document.querySelectorAll('.menu-card').forEach(c=>{
+    const ok=(activeCat==='all'||c.dataset.category===activeCat)&&(!q||c.dataset.name.includes(q));
+    c.hidden=!ok; if(ok) shown++;
+  });
+  $('menu-grid').hidden=shown===0;
+  const e=$('menu-empty'); e.hidden=shown!==0;
+  if(shown===0){
+    e.querySelector('.t').textContent=q?'No results for “'+q+'”':'Nothing here yet';
+    e.querySelector('.s').textContent=q?'Try a different word, or clear the search.':'This category is coming soon. Check back later!';
   }
 }
 
-// Payment method selection
+// ═══ ITEM FORM ═══
+function initItem(id){
+  const it=MENU[id];
+  cur={id,opt:it.type==='cake'?'Medium':it.type==='box'?'Box of 6':null,flavor:it.flavor||null,variant:it.variants?it.variants[0]:null,qty:1,note:''};
+}
+function openItem(id){initItem(id);location.hash='#/item/'+id;}
+function renderItemForm(){
+  const it=MENU[cur.id]; let h='';
+  h+='<button class="back-btn" onclick="goTo(1)">← Back to menu</button>';
+  h+='<div class="item-hero" aria-hidden="true">'+it.emoji+'</div>';
+  h+='<h1 class="display" style="font-size:28px">'+it.name+'</h1>';
+  h+='<div class="subtitle" style="margin-bottom:20px">'+it.blurb+'</div>';
+  if(it.type==='cake'||it.type==='box'){
+    const opts=it.type==='cake'?it.sizes:it.packs;
+    h+='<div class="field"><label class="label">'+(it.type==='cake'?'Size':'Box size')+'</label><div class="size-options" role="group">';
+    Object.keys(opts).forEach(k=>{h+='<button class="size-btn'+(k===cur.opt?' active':'')+'" aria-pressed="'+(k===cur.opt)+'" onclick="pickOpt(\''+k+'\')">'+k+'<small>'+money(opts[k])+'</small></button>';});
+    h+='</div></div>';
+  }
+  if(it.type==='cake'){
+    h+='<div class="field"><label class="label" for="f-flavor">Flavor</label><select id="f-flavor" class="input input-select" onchange="cur.flavor=this.value">';
+    CAKE_FLAVORS.forEach(f=>{h+='<option'+(f===cur.flavor?' selected':'')+'>'+f+'</option>';});
+    h+='</select></div>';
+  }
+  if(it.type==='piece'){
+    h+='<div class="field"><label class="label" for="f-variant">Type</label><select id="f-variant" class="input input-select" onchange="cur.variant=this.value">';
+    it.variants.forEach(v=>{h+='<option'+(v===cur.variant?' selected':'')+'>'+v+'</option>';});
+    h+='</select></div>';
+  }
+  h+='<div class="field"><label class="label">'+(it.type==='box'?'Number of boxes':'Quantity')+'</label>';
+  h+='<div class="stepper"><button onclick="itemQty(-1)"'+(cur.qty<=1?' disabled':'')+' aria-label="Decrease quantity">−</button><span class="q" aria-live="polite">'+cur.qty+'</span><button onclick="itemQty(1)"'+(cur.qty>=20?' disabled':'')+' aria-label="Increase quantity">+</button></div></div>';
+  const isCake=it.type==='cake';
+  h+='<div class="field"><label class="label" for="f-note">'+(isCake?'Message on cake':'Special instructions')+' <span style="font-weight:400;color:var(--muted)">(optional)</span></label>';
+  h+='<textarea id="f-note" maxlength="120" class="input input-tall" oninput="cur.note=this.value" placeholder="'+(isCake?'e.g. Happy Birthday Sarah!':'e.g. Allergies, packaging, gift note')+'">'+esc(cur.note)+'</textarea></div>';
+  h+='<button class="btn btn-primary" style="margin-top:8px" onclick="addToCart()">Add to order — '+money(unitPrice(it,cur)*cur.qty)+'</button>';
+  $('item-form').innerHTML=h;
+}
+function pickOpt(k){cur.opt=k;renderItemForm();}
+function itemQty(d){cur.qty=Math.min(20,Math.max(1,cur.qty+d));renderItemForm();}
+
+// ═══ CART ═══
+function addToCart(){
+  const it=MENU[cur.id];
+  const detail=it.type==='cake'?cur.opt+' · '+cur.flavor:it.type==='box'?cur.opt:cur.variant;
+  const note=cur.note.trim(), key=[cur.id,detail,note].join('|');
+  const line=cart.find(l=>l.key===key);
+  if(line) line.qty=Math.min(20,line.qty+cur.qty);
+  else cart.push({key,id:cur.id,name:it.name,emoji:it.emoji,detail,note,unit:unitPrice(it,cur),qty:cur.qty});
+  saveCart(); updateCartBadge(); toast('Added to your order'); goTo(3);
+}
+function cartQty(i,d){cart[i].qty=Math.min(20,Math.max(1,cart[i].qty+d));saveCart();renderCheckout();}
+function cartRemove(i){cart.splice(i,1);saveCart();renderCheckout();}
+function totals(){const sub=cart.reduce((t,l)=>t+l.unit*l.qty,0);const tax=Math.round(sub*TAX*100)/100;return{sub,tax,total:sub+tax};}
+function updateCartBadge(){const n=cart.reduce((t,l)=>t+l.qty,0),b=$('cart-badge');b.textContent=n;b.style.display=n?'flex':'none';}
+function renderCheckout(){
+  updateCartBadge();
+  const empty=cart.length===0;
+  $('co-empty').style.display=empty?'block':'none'; $('co-main').style.display=empty?'none':'block';
+  if(empty) return;
+  $('co-items').innerHTML=cart.map((l,i)=>
+    '<div class="cart-row"><div class="cart-emoji">'+l.emoji+'</div>'+
+    '<div class="cart-info"><div class="cart-name">'+l.name+'</div><div class="cart-detail">'+esc(l.detail)+' · '+money(l.unit)+' each</div>'+(l.note?'<div class="cart-note">“'+esc(l.note)+'”</div>':'')+'</div>'+
+    '<div class="cart-right"><div class="cart-price">'+money(l.unit*l.qty)+'</div>'+
+    '<div class="mini-stepper"><button onclick="cartQty('+i+',-1)"'+(l.qty<=1?' disabled':'')+' aria-label="Decrease quantity">−</button><span>'+l.qty+'</span><button onclick="cartQty('+i+',1)"'+(l.qty>=20?' disabled':'')+' aria-label="Increase quantity">+</button></div>'+
+    '<button class="cart-remove" onclick="cartRemove('+i+')">Remove</button></div></div>').join('');
+  const t=totals();
+  $('co-sub').textContent=money(t.sub); $('co-tax').textContent=money(t.tax); $('co-total').textContent=money(t.total);
+  updatePayLabel();
+}
+function updatePayLabel(){const t=totals();$('co-pay').textContent=(payMethod==='cash'?'Place order · ':'Pay ')+money(t.total);}
+
+// ═══ CHECKOUT FIELDS ═══
+function buildTimes(){
+  const sel=$('co-time'), date=$('co-date').value, keep=sel.value, now=new Date(), today=date===todayStr();
+  let o='<option value="">Select time</option>';
+  for(let m=9*60;m<=17*60+30;m+=30){
+    const h=Math.floor(m/60),mm=m%60, label=((h+11)%12+1)+':'+String(mm).padStart(2,'0')+' '+(h>=12?'PM':'AM');
+    const slot=new Date(); slot.setHours(h,mm,0,0);
+    const off=today&&(slot-now<60*60*1000);
+    o+='<option value="'+label+'"'+(off?' disabled':'')+'>'+label+(off?' · unavailable':'')+'</option>';
+  }
+  sel.innerHTML=o; if(keep&&[...sel.options].some(x=>x.value===keep&&!x.disabled)) sel.value=keep;
+}
+function fmtCard(el){const d=el.value.replace(/\D/g,'').slice(0,19);el.value=d.replace(/(.{4})/g,'$1 ').trim();}
+function fmtExp(el){const d=el.value.replace(/\D/g,'').slice(0,4);el.value=d.length>2?d.slice(0,2)+' / '+d.slice(2):d;}
+function validExp(v){
+  const m=v.match(/^(\d{2})\s*\/\s*(\d{2})$/); if(!m) return false;
+  const mo=+m[1], yr=2000+(+m[2]); if(mo<1||mo>12) return false;
+  return new Date(yr,mo,0,23,59,59)>=new Date();
+}
 function selectPay(el){
-  document.querySelectorAll('.pay-opt').forEach(o=>{
-    o.style.borderColor='var(--line)';
-    o.querySelector('div[style*="margin-left:auto"]').style.background='var(--line)';
-    o.querySelector('div[style*="margin-left:auto"]').innerHTML='';
-  });
-  el.style.borderColor='var(--forest)';
-  const dot = el.querySelector('div[style*="margin-left:auto"]');
-  dot.style.background='var(--forest)';
-  dot.innerHTML='<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>';
-  const isCard = el.querySelector('div > div').textContent.includes('Credit');
-  document.getElementById('card-fields').style.display = isCard ? 'block' : 'none';
+  document.querySelectorAll('.pay-opt').forEach(o=>{const on=o===el;o.classList.toggle('active',on);o.setAttribute('aria-checked',on);});
+  payMethod=el.dataset.method; $('card-fields').style.display=payMethod==='card'?'block':'none'; updatePayLabel();
 }
 
-// Category filtering
-const emptyState = document.createElement('div');
-emptyState.id = 'empty-state';
-emptyState.style.cssText = 'display:none;text-align:center;padding:40px 20px;color:var(--muted);font-size:14px';
-emptyState.innerHTML = '<div style="font-size:40px;margin-bottom:12px">🍩</div><div style="font-weight:600;color:var(--ink);margin-bottom:6px">Nothing here yet</div><div>This category is coming soon. Check back later!</div>';
-document.querySelector('.menu-grid').after(emptyState);
+// ═══ PLACE ORDER → CONFIRMATION ═══
+function placeOrder(){
+  if(paying||!cart.length) return;
+  let bad=false; const chk=(k,ok,msg)=>{setErr(k,ok?'':msg);if(!ok)bad=true;};
+  const name=$('co-name').value.trim(), email=$('co-email').value.trim(), phone=$('co-phone').value.trim();
+  const date=$('co-date').value, time=$('co-time').value;
+  chk('co-name',name.length>=2,'Enter your full name.');
+  chk('co-email',validEmail(email),'Enter a valid email address.');
+  chk('co-phone',!phone||phone.replace(/\D/g,'').length>=10,'Enter a 10-digit phone number, or leave it blank.');
+  chk('co-date',!!date&&date>=todayStr(),date?'Choose today or a later date.':'Choose a pickup date.');
+  chk('co-time',!!time,'Choose a pickup time.');
+  if(payMethod==='card'){
+    chk('cc-num',(n=>n.length>=13&&n.length<=19)($('cc-num').value.replace(/\D/g,'')),'Enter a valid card number.');
+    chk('cc-exp',validExp($('cc-exp').value),'Enter a valid expiry date (MM / YY).');
+    chk('cc-cvv',/^\d{3,4}$/.test($('cc-cvv').value),'Enter the 3 or 4-digit security code.');
+    chk('cc-name',$('cc-name').value.trim().length>=2,'Enter the name on the card.');
+  } else {['cc-num','cc-exp','cc-cvv','cc-name'].forEach(k=>setErr(k,''));}
+  if(bad){focusFirstError();return;}
+  paying=true; const btn=$('co-pay'); btn.disabled=true; btn.textContent='Processing…';
+  setTimeout(()=>{
+    const id='CK-'+(2482+orders.length), t=totals();
+    const d=new Date(date+'T00:00:00');
+    orders.push({id,demo:false,email,name,phone,pay:payMethod==='cash'?'cash':'paid',stage:0,placedAt:timeNow(),
+      pickup:d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' · '+time,
+      items:cart.map(l=>({name:l.name,detail:l.detail,qty:l.qty,unit:l.unit,note:l.note})),totals:t});
+    lastOrderId=currentOrder=id; saveOrders(); store.set('last',id); store.set('current',id);
+    cart=[]; saveCart(); updateCartBadge(); paying=false; btn.disabled=false; goTo(4);
+  },900);
+}
+function renderConfirmation(){
+  const o=findOrder(lastOrderId);
+  $('confirm-sub').innerHTML='Your order <b>'+o.id+'</b> has been received. We’ll start baking it shortly.';
+  $('confirm-summary').innerHTML=
+    o.items.map(l=>'<div class="summary-row"><span class="summary-key">'+l.qty+'× '+l.name+'<small>'+esc(l.detail)+'</small></span><span class="summary-val">'+money(l.unit*l.qty)+'</span></div>').join('')+
+    '<div class="summary-row"><span class="summary-key">Pickup</span><span class="summary-val">'+o.pickup+'</span></div>'+
+    '<div class="summary-row"><span class="summary-key">Location</span><span class="summary-val">'+STORE+'</span></div>'+
+    '<div class="summary-row"><span class="summary-key">Tax (9.5%)</span><span class="summary-val">'+money(o.totals.tax)+'</span></div>'+
+    '<div class="summary-row"><span class="summary-key">Total</span><span class="summary-val">'+money(o.totals.total)+'</span></div>';
+}
 
-document.querySelectorAll('.cat-tab').forEach(t=>{
-  t.addEventListener('click',()=>{
-    document.querySelectorAll('.cat-tab').forEach(x=>x.classList.remove('active'));
-    t.classList.add('active');
-    const cat = t.textContent.trim().toLowerCase();
-    const cards = document.querySelectorAll('.menu-card');
-    let visible = 0;
-    cards.forEach(card=>{
-      const cardCat = card.dataset.category;
-      const show = cat === 'all' || cardCat === cat;
-      card.style.display = show ? 'block' : 'none';
-      if(show) visible++;
-    });
-    const grid = document.querySelector('.menu-grid');
-    grid.style.display = visible > 0 ? 'grid' : 'none';
-    emptyState.style.display = visible === 0 ? 'block' : 'none';
-  });
+// ═══ TRACKER ═══
+const STAGES=[
+  {demo:['53','minutes away'],word:'Placed',pct:'0%',dots:['active','',''],title:'Order placed',body:o=>'We received your order at '+o.placedAt+'. It goes to the pastry bench shortly.'},
+  {demo:['21','minutes away'],word:'Baking',pct:'50%',dots:['done','active',''],title:'Now baking',body:()=>'Your order is in the oven. We’ll let you know as soon as it’s ready for pickup.'},
+  {demo:['Ready',''],word:'Ready',pct:'100%',dots:['done','done','active'],title:'Your order is ready!',body:()=>'Head to '+STORE+' to pick up your order. Show this screen at the counter.'}
+];
+function paintStage(o){
+  const s=STAGES[o.stage];
+  $('eta-num').textContent=o.demo?s.demo[0]:s.word; $('eta-unit').textContent=o.demo?s.demo[1]:'';
+  $('progress-fill').style.width=s.pct; $('status-title').textContent=s.title; $('status-body').textContent=s.body(o);
+  for(let i=0;i<3;i++){$('dot-'+i).className='stage-dot '+(s.dots[i]||'');$('lbl-'+i).className='stage-label '+(s.dots[i]?'active':'');}
+  document.querySelectorAll('.state-tab').forEach((t,i)=>{t.classList.toggle('active',i===o.stage);t.setAttribute('aria-pressed',i===o.stage);});
+}
+function renderTracker(){
+  const o=findOrder(currentOrder);
+  $('trk-order').textContent='Order '+o.id;
+  $('trk-pickup').textContent=(o.demo?'Pickup by ':'Pickup ')+o.pickup+' · '+STORE;
+  $('trk-tag').textContent=o.pay==='cash'?'Pay at pickup · Pickup in store':'Paid · Pickup in store';
+  paintStage(o); setErr('notify','');
+  if(o.notify) showNotifyDone(o.notify); else {$('notify-form').hidden=false;$('notify-done').hidden=true;$('notify-email').value=o.email||'';}
+}
+function setTrackerState(i){const o=findOrder(currentOrder);o.stage=i;if(!o.demo)saveOrders();paintStage(o);}
+function refreshStatus(btn){
+  btn.disabled=true; const t=btn.textContent; btn.textContent='Refreshing…';
+  setTimeout(()=>{btn.disabled=false;btn.textContent=t;toast('Up to date · checked '+timeNow());},700);
+}
+function showNotifyDone(addr){$('notify-addr').textContent=addr;$('notify-form').hidden=true;$('notify-done').hidden=false;}
+function notifyMe(){
+  const v=$('notify-email').value.trim();
+  if(!validEmail(v)){setErr('notify','Enter a valid email address.');$('notify-email').focus();return;}
+  setErr('notify',''); const o=findOrder(currentOrder); o.notify=v; if(!o.demo) saveOrders(); showNotifyDone(v);
+}
+function changeNotify(){const o=findOrder(currentOrder);o.notify=null;if(!o.demo)saveOrders();$('notify-form').hidden=false;$('notify-done').hidden=true;$('notify-email').focus();}
+
+// ═══ KEYBOARD: let Enter/Space activate role="button" and role="radio" elements ═══
+document.addEventListener('keydown',e=>{
+  if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('[role=button],[role=radio]')){e.preventDefault();e.target.click();}
 });
+
+// ═══ START ═══
+(function init(){
+  const d=$('co-date'); d.min=todayStr(); buildTimes(); updateCartBadge(); route();
+})();
 </script>
 </body>
 </html>

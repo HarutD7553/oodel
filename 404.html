@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Page not found · Oodel</title>
+<meta name="theme-color" content="#2F4A3B">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%232F4A3B'/%3E%3Cpath d='M16 7L7 24h18z' fill='none' stroke='%23FFFDF8' stroke-width='2.4' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='13' r='1.8' fill='%23C0335E'/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--forest:#2F4A3B;--forest-light:#3d6150;--raspberry:#C0335E;--cream:#FFFDF8;--pistachio:#E8F0E8;--ink:#1C1018;--muted:#7A6E77;--line:#E2DCE0}
+html,body{height:100%;font-family:'Inter',sans-serif;background:var(--pistachio);color:var(--ink);-webkit-font-smoothing:antialiased}
+.nav{height:56px;display:flex;align-items:center;padding:0 20px;background:rgba(255,253,248,.92);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo{width:32px;height:32px;border-radius:50%;background:var(--forest);display:flex;align-items:center;justify-content:center}
+.logo svg{width:14px;height:14px}
+.word{font-family:'Playfair Display',serif;font-size:18px;font-weight:600;color:var(--forest)}
+.word span{color:var(--raspberry)}
+main{max-width:420px;margin:0 auto;padding:64px 20px;text-align:center}
+.emoji{font-size:56px;margin-bottom:8px}
+h1{font-family:'Playfair Display',serif;font-size:32px;font-weight:600;line-height:1.2;margin-bottom:8px}
+p{font-size:15px;color:var(--muted);line-height:1.6;margin-bottom:28px}
+.btn{display:flex;align-items:center;justify-content:center;height:52px;border-radius:999px;background:var(--forest);color:var(--cream);font-size:15px;font-weight:600;text-decoration:none;transition:background .18s}
+.btn:hover{background:var(--forest-light)}
+.btn:focus-visible{outline:2px solid var(--forest);outline-offset:3px}
+.btn.second{background:transparent;color:var(--ink);border:1.5px solid var(--line);margin-top:10px}
+.btn.second:hover{border-color:var(--forest);color:var(--forest)}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a class="brand" id="brand" href="/">
+    <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#FFFDF8" stroke-width="2.5"><path d="M12 2L2 19h20L12 2z"/><circle cx="12" cy="8" r="1.5" fill="#C0335E" stroke="none"/></svg></div>
+    <span class="word">Oodel<span>.</span></span>
+  </a>
+</nav>
+<main>
+  <div class="emoji" aria-hidden="true">🥧</div>
+  <h1>Page not found</h1>
+  <p>We couldn't find that page. The link may be mistyped or the page may have moved.</p>
+  <a class="btn" id="menu" href="/#/menu">Back to the menu</a>
+  <a class="btn second" id="home" href="/">Go to home</a>
+</main>
+<script>
+// Works on GitHub Pages project sites (username.github.io/oodel/), on Harut's server, and when opened from a file.
+(function(){
+  var base='/';
+  if(location.protocol==='file:') base='index.html';
+  else if(/github\.io$/.test(location.hostname)) base='/'+(location.pathname.split('/')[1]||'')+'/';
+  document.getElementById('brand').href=base;
+  document.getElementById('home').href=base;
+  document.getElementById('menu').href=base+(base==='index.html'?'':'')+'#/menu';
+})();
+</script>
+</body>
+</html>

@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Oodel — Baker Portal</title>
+<title>Oodel Kitchen — Baker Portal</title>
+<meta name="description" content="Oodel kitchen portal for bakers and production staff.">
+<meta name="theme-color" content="#111111">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%232F4A3B'/%3E%3Cpath d='M16 7L7 24h18z' fill='none' stroke='%23FFFDF8' stroke-width='2.4' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='13' r='1.8' fill='%23C0335E'/%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -187,455 +190,368 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#1a1a1a;color:va
   .main{margin-left:0}
   .stats-row{grid-template-columns:1fr 1fr}
 }
+
+/* ═══ Task 1–2 polish ═══ */
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--butter);outline-offset:2px}
+#main:focus,#main:focus-visible{outline:none}
+a.sidebar-item{text-decoration:none}
+.nav-link{color:#aaa;font-size:12px;text-decoration:none;padding:6px 10px;border-radius:999px;border:1px solid transparent}
+.nav-link:hover{color:#fff;border-color:#444}
+.login-wrap{min-height:100vh;background:#0f0f0f;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-card{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:20px;padding:28px}
+.l-label{font-size:12px;font-weight:500;color:#888;display:block;margin-bottom:6px}
+.l-input{width:100%;height:46px;padding:0 14px;background:#111;border:1.5px solid #333;border-radius:10px;font-size:14px;font-family:'Inter',sans-serif;color:var(--cream);outline:none;transition:border-color .15s}
+.l-input:focus{border-color:var(--forest-light)}
+.l-btn{width:100%;height:48px;border-radius:999px;background:var(--forest);color:var(--cream);border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:background .15s}
+.l-btn:hover{background:var(--forest-light)}
+.login-err{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:10px 14px;font-size:13px;color:#F87171;margin-bottom:16px}
+.pw-wrap{position:relative}
+.pw-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#888;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;padding:6px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:#2a2a2a;border:1px solid #444;color:#fff;padding:12px 18px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:400;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:16px;z-index:300}
+.modal-card{background:#1e1e1e;border:1px solid #333;border-radius:20px;max-width:480px;width:100%;max-height:90vh;overflow:auto;padding:22px;color:#ddd}
+.modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}
+.modal-title{font-size:18px;font-weight:700;color:var(--cream)}
+.modal-x{background:#2a2a2a;border:1px solid #3a3a3a;color:#aaa;width:34px;height:34px;border-radius:50%;font-size:18px;cursor:pointer;line-height:1}
+.m-sec{margin-bottom:16px}
+.m-h{font-size:11px;font-weight:600;color:#666;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.m-row{display:flex;justify-content:space-between;gap:12px;font-size:13px;padding:5px 0;color:#bbb}
+.m-row b{color:var(--cream);font-weight:600;text-align:right}
+.m-item{font-size:14px;color:var(--cream);padding:4px 0}
+.m-item small{color:#888;font-size:12px;margin-left:6px}
+.batch-table{width:100%;border-collapse:collapse;background:#1e1e1e;border:1px solid #2a2a2a;border-radius:16px;overflow:hidden;font-size:13px}
+.batch-table th{text-align:left;color:#666;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:12px 14px;border-bottom:1px solid #2a2a2a}
+.batch-table td{padding:12px 14px;color:#ccc;border-bottom:1px solid #262626}
+.batch-table tr:last-child td{border-bottom:none}
+.batch-table td b{color:var(--cream)}
+.clock-card{background:#1e1e1e;border:1px solid #2a2a2a;border-radius:var(--radius);padding:32px;text-align:center;max-width:460px}
+.clock-btn{width:100%;height:48px;border-radius:999px;color:#fff;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif}
+.empty{text-align:center;padding:48px 20px;color:#666;font-size:14px}
+@media(max-width:768px){
+  .layout{flex-direction:column}
+  .sidebar{display:flex;position:static;width:100%;flex-direction:row;overflow-x:auto;padding:10px 12px;border-right:none;border-bottom:1px solid #222;gap:6px}
+  .sidebar-label,.shift-box{display:none}
+  .sidebar-item{width:auto;white-space:nowrap;padding:9px 14px}
+  .main{margin-left:0;padding:16px}
+  .nav{padding:0 14px}
+}
+@media(max-width:560px){.nav-badge{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
 
-<!-- ─── LOGIN SCREEN ─── -->
-<div id="login-screen" style="min-height:100vh;background:#0f0f0f;display:flex;align-items:center;justify-content:center;padding:20px">
+<!-- ═══ STAFF SIGN IN ═══ -->
+<div id="login-screen" class="login-wrap" hidden>
   <div style="width:100%;max-width:380px">
-
-    <!-- Logo -->
-    <div style="text-align:center;margin-bottom:40px">
+    <div style="text-align:center;margin-bottom:36px">
       <div style="width:52px;height:52px;border-radius:50%;background:var(--forest);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFDF8" stroke-width="2.5"><path d="M12 2L2 19h20L12 2z"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFDF8" stroke-width="2.5"><path d="M12 2L2 19h20L12 2z"/><circle cx="12" cy="8" r="1.5" fill="#C0335E" stroke="none"/></svg>
       </div>
       <div style="font-family:'Playfair Display',serif;font-size:26px;font-weight:600;color:var(--cream)">Oodel<span style="color:var(--raspberry)">.</span></div>
-      <div style="font-size:13px;color:#555;margin-top:4px">Baker & Kitchen Staff Portal</div>
+      <div style="font-size:13px;color:#777;margin-top:4px">Baker &amp; Kitchen Staff Portal</div>
     </div>
-
-    <!-- Card -->
-    <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:20px;padding:28px">
-      <div style="font-size:18px;font-weight:600;color:var(--cream);margin-bottom:4px">Sign in</div>
-      <div style="font-size:13px;color:#555;margin-bottom:24px">Enter your staff credentials to continue</div>
-
-      <!-- Error -->
-      <div id="login-error" style="display:none;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:10px 14px;font-size:13px;color:#F87171;margin-bottom:16px">
-        ⚠️ Invalid username or password. Please try again.
-      </div>
-
+    <form class="login-card" onsubmit="return handleBakerLogin(event)" novalidate>
+      <h1 style="font-size:18px;font-weight:600;color:var(--cream);margin-bottom:4px">Sign in</h1>
+      <div style="font-size:13px;color:#777;margin-bottom:22px">Enter your staff credentials to continue</div>
+      <div class="login-err" id="login-error" role="alert" hidden></div>
       <div style="margin-bottom:14px">
-        <label style="font-size:12px;font-weight:500;color:#888;display:block;margin-bottom:6px">Username</label>
-        <input id="baker-username" type="text" placeholder="Enter your username"
-          style="width:100%;height:46px;padding:0 14px;background:#111;border:1.5px solid #333;border-radius:10px;font-size:14px;font-family:'Inter',sans-serif;color:var(--cream);outline:none;transition:border-color .15s"
-          onfocus="this.style.borderColor='#2F4A3B'" onblur="this.style.borderColor='#333'">
+        <label class="l-label" for="baker-username">Username</label>
+        <input class="l-input" id="baker-username" type="text" placeholder="Enter your username" autocomplete="username" autocapitalize="none">
       </div>
-
       <div style="margin-bottom:20px">
-        <label style="font-size:12px;font-weight:500;color:#888;display:block;margin-bottom:6px">Password</label>
-        <input id="baker-password" type="password" placeholder="Enter your password"
-          style="width:100%;height:46px;padding:0 14px;background:#111;border:1.5px solid #333;border-radius:10px;font-size:14px;font-family:'Inter',sans-serif;color:var(--cream);outline:none;transition:border-color .15s"
-          onfocus="this.style.borderColor='#2F4A3B'" onblur="this.style.borderColor='#333'"
-          onkeydown="if(event.key==='Enter')handleBakerLogin()">
+        <label class="l-label" for="baker-password">Password</label>
+        <div class="pw-wrap">
+          <input class="l-input" id="baker-password" type="password" placeholder="Enter your password" autocomplete="current-password" style="padding-right:62px">
+          <button type="button" class="pw-toggle" id="pw-toggle" onclick="togglePw()" aria-label="Show password">Show</button>
+        </div>
       </div>
-
-      <button onclick="handleBakerLogin()"
-        style="width:100%;height:48px;border-radius:999px;background:var(--forest);color:var(--cream);border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:background .15s"
-        onmouseover="this.style.background='#3d6150'" onmouseout="this.style.background='#2F4A3B'">
-        Sign in to Kitchen Portal
-      </button>
-
-      <div style="text-align:center;margin-top:16px;font-size:12px;color:#444">
-        🔒 Staff access only · Unauthorized access prohibited
-      </div>
-    </div>
-
-    <div style="text-align:center;margin-top:20px;font-size:12px;color:#333">
-      Oodel · Northridge · CIT 480 Senior Project
+      <button type="submit" class="l-btn">Sign in to Kitchen Portal</button>
+      <div style="text-align:center;margin-top:14px;font-size:12px;color:#555">🔒 Staff access only</div>
+    </form>
+    <div style="text-align:center;margin-top:18px;font-size:12px;color:#555;line-height:1.7">
+      Demo access: <b style="color:#888">baker</b> / <b style="color:#888">oodel2026</b> (placeholder until the real login API is connected)<br>
+      <a href="index.html#/" style="color:#888">← Back to the customer site</a>
     </div>
   </div>
 </div>
 
-<!-- ─── MAIN PORTAL (hidden until login) ─── -->
-<div id="portal-screen" style="display:none">
-
-<!-- NAV -->
-<nav class="nav">
-  <div class="nav-brand">
-    <div class="nav-logo">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#FFFDF8" stroke-width="2.5"><path d="M12 2L2 19h20L12 2z"/></svg>
+<!-- ═══ PORTAL ═══ -->
+<div id="portal-screen" hidden>
+  <nav class="nav" aria-label="Main">
+    <div class="nav-brand">
+      <div class="nav-logo"><svg viewBox="0 0 24 24" fill="none" stroke="#FFFDF8" stroke-width="2.5"><path d="M12 2L2 19h20L12 2z"/></svg></div>
+      <span class="nav-wordmark">Oodel<span>.</span></span>
     </div>
-    <span class="nav-wordmark">Oodel<span>.</span></span>
-  </div>
-  <div class="nav-right">
-    <div class="nav-badge">Baker · <span>Kitchen</span></div>
-    <button class="nav-logout">Sign out</button>
-  </div>
-</nav>
-
-<div class="layout">
-
-  <!-- SIDEBAR -->
-  <div class="sidebar">
-    <div class="sidebar-label">Kitchen</div>
-    <button class="sidebar-item active" onclick="showView('orders')">
-      <span>🧾</span> Orders Queue
-      <span class="badge" id="queue-count">3</span>
-    </button>
-    <button class="sidebar-item" onclick="showView('production')">
-      <span>🔥</span> In Production
-    </button>
-    <button class="sidebar-item" onclick="showView('ready')">
-      <span>✅</span> Ready for Pickup
-    </button>
-
-    <div class="sidebar-label" style="margin-top:12px">Info</div>
-    <button class="sidebar-item" onclick="showView('batch')">
-      <span>📋</span> Batch Info
-    </button>
-    <button class="sidebar-item" onclick="showView('clock')">
-      <span>⏱️</span> Clock In/Out
-    </button>
-
-    <div style="margin-top:auto;padding:12px;background:#1a1a1a;border-radius:var(--radius-sm);border:1px solid #2a2a2a">
-      <div style="font-size:11px;color:#555;margin-bottom:4px">Shift started</div>
-      <div style="font-size:14px;font-weight:600;color:#aaa" id="shift-time">8:00 AM</div>
-      <div style="font-size:11px;color:#555;margin-top:2px" id="shift-duration">3h 25m elapsed</div>
+    <div class="nav-right">
+      <a class="nav-link" href="index.html#/">Customer site</a>
+      <div class="nav-badge">Baker · <span>Kitchen</span></div>
+      <button class="nav-logout" onclick="handleSignOut()">Sign out</button>
     </div>
-  </div>
+  </nav>
 
-  <!-- MAIN -->
-  <div class="main">
-
-    <!-- ORDERS VIEW -->
-    <div id="view-orders">
-      <div class="page-header">
-        <div class="page-title">Orders Queue</div>
-        <div class="page-sub" id="current-time">Today · Loading time...</div>
-      </div>
-
-      <!-- Stats -->
-      <div class="stats-row">
-        <div class="stat-card blue">
-          <div class="stat-num">3</div>
-          <div class="stat-label">Placed — waiting</div>
-        </div>
-        <div class="stat-card amber">
-          <div class="stat-num">2</div>
-          <div class="stat-label">Currently baking</div>
-        </div>
-        <div class="stat-card green">
-          <div class="stat-num">5</div>
-          <div class="stat-label">Ready today</div>
-        </div>
-        <div class="stat-card red">
-          <div class="stat-num">1</div>
-          <div class="stat-label">Urgent — due soon</div>
-        </div>
-      </div>
-
-      <!-- Filters -->
-      <div class="filters">
-        <button class="filter-btn active" onclick="filterOrders('all',this)">All <span class="filter-count">6</span></button>
-        <button class="filter-btn" onclick="filterOrders('placed',this)">Placed <span class="filter-count">3</span></button>
-        <button class="filter-btn" onclick="filterOrders('baking',this)">Baking <span class="filter-count">2</span></button>
-        <button class="filter-btn" onclick="filterOrders('ready',this)">Ready <span class="filter-count">1</span></button>
-      </div>
-
-      <!-- Orders -->
-      <div class="orders-grid">
-
-        <!-- Order 1 — URGENT -->
-        <div class="order-card priority" data-status="placed">
-          <div class="order-top">
-            <div>
-              <div class="order-id">CK-2481 <span class="pickup-timer urgent">⚡ 45 min to pickup</span></div>
-              <div class="order-customer">Sarah Johnson</div>
-              <div class="order-time">Placed at 9:42 AM · Pickup 11:30 AM</div>
-            </div>
-            <div class="status-badge status-placed">Placed</div>
-          </div>
-          <div class="order-items">
-            <div class="order-item-tag"><strong>1×</strong> Strawberry Cake (Medium)</div>
-            <div class="order-item-tag"><strong>2×</strong> Vanilla Cupcake</div>
-          </div>
-          <div class="allergen-alert">
-            ⚠️ <strong>ALLERGEN ALERT</strong> — <span class="allergen-badge">🥜 Nuts</span> must be completely avoided. Cross-contamination risk.
-          </div>
-          <div class="order-note">
-            <strong>📝 Special instructions</strong>
-            "Happy Birthday Sarah!" on the cake. No nuts — allergen.
-          </div>
-          <div class="order-meta">
-            <div class="order-meta-item">💰 <strong>$38.00</strong></div>
-            <div class="order-meta-item">📍 <strong>Northridge</strong></div>
-            <div class="order-meta-item">💳 <strong>Paid online</strong></div>
-          </div>
-          <div class="order-actions">
-            <button class="action-btn action-btn-secondary">View details</button>
-            <button class="action-btn action-btn-primary" onclick="updateStatus(this,'baking')">🔥 Start baking</button>
-          </div>
-        </div>
-
-        <!-- Order 2 -->
-        <div class="order-card" data-status="placed">
-          <div class="order-top">
-            <div>
-              <div class="order-id">CK-2482 <span class="pickup-timer soon">⏱ 2h to pickup</span></div>
-              <div class="order-customer">Michael Chen</div>
-              <div class="order-time">Placed at 9:55 AM · Pickup 12:00 PM</div>
-            </div>
-            <div class="status-badge status-placed">Placed</div>
-          </div>
-          <div class="order-items">
-            <div class="order-item-tag"><strong>1×</strong> Chocolate Cake (Large)</div>
-          </div>
-          <div class="order-meta">
-            <div class="order-meta-item">💰 <strong>$28.00</strong></div>
-            <div class="order-meta-item">📍 <strong>Northridge</strong></div>
-            <div class="order-meta-item">💳 <strong>Paid online</strong></div>
-          </div>
-          <div class="order-actions">
-            <button class="action-btn action-btn-secondary">View details</button>
-            <button class="action-btn action-btn-primary" onclick="updateStatus(this,'baking')">🔥 Start baking</button>
-          </div>
-        </div>
-
-        <!-- Order 3 -->
-        <div class="order-card" data-status="placed">
-          <div class="order-top">
-            <div>
-              <div class="order-id">CK-2483 <span class="pickup-timer ok">✓ 3h to pickup</span></div>
-              <div class="order-customer">Emily Rodriguez</div>
-              <div class="order-time">Placed at 10:10 AM · Pickup 1:00 PM</div>
-            </div>
-            <div class="status-badge status-placed">Placed</div>
-          </div>
-          <div class="order-items">
-            <div class="order-item-tag"><strong>1×</strong> Red Velvet Cake (Medium)</div>
-            <div class="order-item-tag"><strong>3×</strong> Croissant</div>
-          </div>
-          <div class="allergen-alert">
-            ⚠️ <strong>ALLERGEN ALERT</strong> — <span class="allergen-badge">🥛 Dairy-free</span> request. No butter or cream in frosting.
-          </div>
-          <div class="order-note">
-            <strong>📝 Special instructions</strong>
-            Extra frosting on the cake please. Dairy-free frosting only.
-          </div>
-          <div class="order-meta">
-            <div class="order-meta-item">💰 <strong>$44.00</strong></div>
-            <div class="order-meta-item">📍 <strong>Northridge</strong></div>
-            <div class="order-meta-item">💵 <strong>Cash on pickup</strong></div>
-          </div>
-          <div class="order-actions">
-            <button class="action-btn action-btn-secondary">View details</button>
-            <button class="action-btn action-btn-primary" onclick="updateStatus(this,'baking')">🔥 Start baking</button>
-          </div>
-        </div>
-
-        <!-- Order 4 — BAKING -->
-        <div class="order-card" data-status="baking">
-          <div class="order-top">
-            <div>
-              <div class="order-id">CK-2479 <span class="pickup-timer urgent">⚡ 30 min to pickup</span></div>
-              <div class="order-customer">David Kim</div>
-              <div class="order-time">Baking since 9:30 AM · Pickup 11:00 AM</div>
-            </div>
-            <div class="status-badge status-baking">Baking</div>
-          </div>
-          <div class="order-items">
-            <div class="order-item-tag"><strong>1×</strong> Vanilla Cupcake (×6 box)</div>
-          </div>
-          <div class="order-meta">
-            <div class="order-meta-item">💰 <strong>$18.00</strong></div>
-            <div class="order-meta-item">📍 <strong>Northridge</strong></div>
-            <div class="order-meta-item">💳 <strong>Paid online</strong></div>
-          </div>
-          <div class="order-actions">
-            <button class="action-btn action-btn-secondary">View details</button>
-            <button class="action-btn action-btn-ready" onclick="updateStatus(this,'ready')">✅ Mark as ready</button>
-          </div>
-        </div>
-
-        <!-- Order 5 — BAKING -->
-        <div class="order-card" data-status="baking">
-          <div class="order-top">
-            <div>
-              <div class="order-id">CK-2480 <span class="pickup-timer soon">⏱ 1h to pickup</span></div>
-              <div class="order-customer">Lisa Park</div>
-              <div class="order-time">Baking since 9:50 AM · Pickup 11:45 AM</div>
-            </div>
-            <div class="status-badge status-baking">Baking</div>
-          </div>
-          <div class="order-items">
-            <div class="order-item-tag"><strong>1×</strong> Strawberry Cake (Small)</div>
-          </div>
-          <div class="allergen-alert">
-            ⚠️ <strong>ALLERGEN ALERT</strong> — <span class="allergen-badge">🌾 Gluten-free</span> request. Use dedicated gluten-free equipment only.
-          </div>
-          <div class="order-note">
-            <strong>📝 Special instructions</strong>
-            "Congratulations!" written on top.
-          </div>
-          <div class="order-meta">
-            <div class="order-meta-item">💰 <strong>$18.00</strong></div>
-            <div class="order-meta-item">📍 <strong>Northridge</strong></div>
-            <div class="order-meta-item">💳 <strong>Paid online</strong></div>
-          </div>
-          <div class="order-actions">
-            <button class="action-btn action-btn-secondary">View details</button>
-            <button class="action-btn action-btn-ready" onclick="updateStatus(this,'ready')">✅ Mark as ready</button>
-          </div>
-        </div>
-
-        <!-- Order 6 — READY -->
-        <div class="order-card" data-status="ready">
-          <div class="order-top">
-            <div>
-              <div class="order-id">CK-2478</div>
-              <div class="order-customer">Tom Wilson</div>
-              <div class="order-time">Ready since 9:15 AM · Pickup 10:00 AM</div>
-            </div>
-            <div class="status-badge status-ready">Ready</div>
-          </div>
-          <div class="order-items">
-            <div class="order-item-tag"><strong>1×</strong> Chocolate Cake (Medium)</div>
-          </div>
-          <div class="order-meta">
-            <div class="order-meta-item">💰 <strong>$22.00</strong></div>
-            <div class="order-meta-item">📍 <strong>Northridge</strong></div>
-            <div class="order-meta-item">💳 <strong>Paid online</strong></div>
-          </div>
-          <div class="order-actions">
-            <button class="action-btn action-btn-secondary" style="flex:2">Waiting for customer pickup</button>
-          </div>
-        </div>
-
+  <div class="layout">
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-label">Kitchen</div>
+      <a class="sidebar-item" data-view="queue" href="#/queue"><span aria-hidden="true">🧾</span> Orders Queue <span class="badge" id="queue-count">0</span></a>
+      <a class="sidebar-item" data-view="production" href="#/production"><span aria-hidden="true">🔥</span> In Production</a>
+      <a class="sidebar-item" data-view="ready" href="#/ready"><span aria-hidden="true">✅</span> Ready for Pickup</a>
+      <div class="sidebar-label" style="margin-top:12px">Info</div>
+      <a class="sidebar-item" data-view="batch" href="#/batch"><span aria-hidden="true">📋</span> Batch Info</a>
+      <a class="sidebar-item" data-view="clock" href="#/clock"><span aria-hidden="true">⏱️</span> Clock In/Out</a>
+      <div class="shift-box" style="margin-top:auto;padding:12px;background:#1a1a1a;border-radius:var(--radius-sm);border:1px solid #2a2a2a">
+        <div style="font-size:11px;color:#555;margin-bottom:4px" id="shift-label">Shift started</div>
+        <div style="font-size:14px;font-weight:600;color:#aaa" id="shift-time">—</div>
+        <div style="font-size:11px;color:#555;margin-top:2px" id="shift-elapsed"></div>
       </div>
     </div>
 
-    <!-- BATCH INFO VIEW -->
-    <div id="view-batch" style="display:none">
-      <div class="page-header">
-        <div class="page-title">Batch Production Info</div>
-        <div class="page-sub">Today's production schedule</div>
-      </div>
-      <div style="background:#1e1e1e;border:1px solid #2a2a2a;border-radius:var(--radius);padding:24px;color:#aaa;text-align:center">
-        <div style="font-size:40px;margin-bottom:12px">📋</div>
-        <div style="font-size:15px;color:#ccc;font-weight:600;margin-bottom:8px">Batch info coming soon</div>
-        <div style="font-size:13px">This will show production schedules, quantities, and batch details once the backend is connected.</div>
-      </div>
-    </div>
+    <main class="main" id="main">
 
-    <!-- CLOCK VIEW -->
-    <div id="view-clock" style="display:none">
-      <div class="page-header">
-        <div class="page-title">Clock In / Out</div>
-        <div class="page-sub">Track your shift hours</div>
-      </div>
-      <div style="background:#1e1e1e;border:1px solid #2a2a2a;border-radius:var(--radius);padding:32px;text-align:center">
-        <div style="font-size:48px;font-family:'Playfair Display',serif;color:var(--cream);margin-bottom:8px" id="clock-display">10:25 AM</div>
-        <div style="font-size:13px;color:#666;margin-bottom:24px">Sunday, October 11, 2026</div>
-        <div style="background:#252525;border-radius:var(--radius);padding:16px;margin-bottom:20px;text-align:left">
-          <div style="font-size:12px;color:#555;margin-bottom:8px">CURRENT SHIFT</div>
-          <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px"><span style="color:#888">Clocked in</span><span style="color:#ccc;font-weight:600">8:00 AM</span></div>
-          <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:#888">Elapsed</span><span style="color:var(--butter);font-weight:600">2h 25m</span></div>
+      <!-- QUEUE -->
+      <section id="view-queue" hidden>
+        <div class="page-header"><h1 class="page-title">Orders Queue</h1><div class="page-sub" id="current-time"></div></div>
+        <div class="stats-row">
+          <div class="stat-card blue"><div class="stat-num" id="st-placed">0</div><div class="stat-label">Placed · waiting</div></div>
+          <div class="stat-card amber"><div class="stat-num" id="st-baking">0</div><div class="stat-label">Currently baking</div></div>
+          <div class="stat-card green"><div class="stat-num" id="st-ready">0</div><div class="stat-label">Ready for pickup</div></div>
+          <div class="stat-card red"><div class="stat-num" id="st-urgent">0</div><div class="stat-label">Urgent · due soon</div></div>
         </div>
-        <button style="width:100%;height:48px;border-radius:var(--radius-pill);background:var(--raspberry);color:white;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">Clock Out</button>
-      </div>
-    </div>
+        <div class="filters" role="group" aria-label="Filter orders">
+          <button class="filter-btn active" data-f="all" onclick="setFilter('all')">All <span class="filter-count" id="cnt-all">0</span></button>
+          <button class="filter-btn" data-f="placed" onclick="setFilter('placed')">Placed <span class="filter-count" id="cnt-placed">0</span></button>
+          <button class="filter-btn" data-f="baking" onclick="setFilter('baking')">Baking <span class="filter-count" id="cnt-baking">0</span></button>
+          <button class="filter-btn" data-f="ready" onclick="setFilter('ready')">Ready <span class="filter-count" id="cnt-ready">0</span></button>
+        </div>
+        <div class="orders-grid" id="orders-list"></div>
+      </section>
 
-    <!-- PRODUCTION VIEW -->
-    <div id="view-production" style="display:none">
-      <div class="page-header">
-        <div class="page-title">In Production</div>
-        <div class="page-sub">Orders currently being baked</div>
-      </div>
-      <div style="color:#aaa;font-size:14px;text-align:center;padding:40px">
-        <div style="font-size:40px;margin-bottom:12px">🔥</div>
-        <div style="color:#ccc;font-weight:600;margin-bottom:6px">2 orders in the oven</div>
-        <div>CK-2479 and CK-2480 are currently baking.</div>
-      </div>
-    </div>
+      <!-- IN PRODUCTION -->
+      <section id="view-production" hidden>
+        <div class="page-header"><h1 class="page-title">In Production</h1><div class="page-sub">Orders currently being baked</div></div>
+        <div class="orders-grid" id="production-list"></div>
+      </section>
 
-    <!-- READY VIEW -->
-    <div id="view-ready" style="display:none">
-      <div class="page-header">
-        <div class="page-title">Ready for Pickup</div>
-        <div class="page-sub">Orders waiting for customer collection</div>
-      </div>
-      <div style="background:#1e1e1e;border:1px solid rgba(16,185,129,0.3);border-radius:var(--radius);padding:18px;margin-bottom:12px">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div>
-            <div style="font-size:15px;font-weight:700;color:var(--cream)">CK-2478</div>
-            <div style="font-size:13px;color:#888;margin-top:2px">Tom Wilson · Chocolate Cake</div>
-            <div style="font-size:12px;color:#555;margin-top:1px">Ready since 9:15 AM</div>
+      <!-- READY -->
+      <section id="view-ready" hidden>
+        <div class="page-header"><h1 class="page-title">Ready for Pickup</h1><div class="page-sub">Orders waiting for the customer</div></div>
+        <div class="orders-grid" id="ready-list"></div>
+      </section>
+
+      <!-- BATCH -->
+      <section id="view-batch" hidden>
+        <div class="page-header"><h1 class="page-title">Batch Production</h1><div class="page-sub">Everything still to bake, totaled by item</div></div>
+        <div id="batch-body"></div>
+      </section>
+
+      <!-- CLOCK -->
+      <section id="view-clock" hidden>
+        <div class="page-header"><h1 class="page-title">Clock In / Out</h1><div class="page-sub">Track your shift hours</div></div>
+        <div class="clock-card">
+          <div style="font-size:48px;font-family:'Playfair Display',serif;color:var(--cream);margin-bottom:6px" id="clock-display">—</div>
+          <div style="font-size:13px;color:#666;margin-bottom:24px" id="clock-date"></div>
+          <div style="background:#252525;border-radius:var(--radius);padding:16px;margin-bottom:20px;text-align:left">
+            <div style="font-size:12px;color:#555;margin-bottom:8px;letter-spacing:.06em" id="clock-status">CURRENT SHIFT</div>
+            <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px"><span style="color:#888" id="clock-l1">Clocked in</span><span style="color:#ccc;font-weight:600" id="clock-v1">—</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:#888" id="clock-l2">Elapsed</span><span style="color:var(--butter);font-weight:600" id="clock-v2">—</span></div>
           </div>
-          <div class="status-badge status-ready">Ready</div>
+          <button class="clock-btn" id="clock-btn" onclick="clockToggle()">Clock out</button>
         </div>
-      </div>
-    </div>
+      </section>
 
+      <!-- NOT FOUND -->
+      <section id="view-404" hidden>
+        <div class="empty">
+          <div style="font-size:48px;margin-bottom:12px">🥧</div>
+          <h1 style="font-size:20px;color:var(--cream);margin-bottom:6px">Page not found</h1>
+          <div style="margin-bottom:20px">That page doesn't exist in the kitchen portal.</div>
+          <a class="action-btn action-btn-primary" style="display:inline-flex;align-items:center;justify-content:center;padding:0 22px;text-decoration:none" href="#/queue">Back to the orders queue</a>
+        </div>
+      </section>
+
+    </main>
   </div>
 </div>
 
+<!-- ORDER DETAILS -->
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modal-title" onclick="if(event.target===this)closeModal()">
+  <div class="modal-card" id="modal-card"></div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
-// Baker login — demo credentials
-// TODO: Replace with real API call → POST /api/login
-function handleBakerLogin(){
-  const username = document.getElementById('baker-username').value.trim();
-  const password = document.getElementById('baker-password').value.trim();
-  const error = document.getElementById('login-error');
+'use strict';
+const $=id=>document.getElementById(id);
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const timeNow=()=>new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+const money=n=>'$'+n.toFixed(2);
+const store={
+  get(k,d){try{const v=sessionStorage.getItem('oodel_baker_'+k);return v?JSON.parse(v):d;}catch(e){return d;}},
+  set(k,v){try{sessionStorage.setItem('oodel_baker_'+k,JSON.stringify(v));}catch(e){}},
+  del(k){try{sessionStorage.removeItem('oodel_baker_'+k);}catch(e){}}
+};
+let toastT; function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600);}
 
-  if(username === 'baker' && password === 'oodel2026'){
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('portal-screen').style.display = 'block';
-    error.style.display = 'none';
-  } else {
-    error.style.display = 'block';
-  }
+// ═══ ORDERS — demo data. Harut's GET /api/orders and PATCH /api/orders/:id/status will replace this ═══
+const SEED=[
+ {id:'CK-2481',customer:'Sarah Johnson',phone:'(818) 555-0142',email:'sarah.j@example.com',status:'placed',placedAt:'9:42 AM',pickup:'11:30 AM',timer:{level:'urgent',text:'⚡ 45 min to pickup'},items:[{qty:1,name:'Strawberry Cake',detail:'Medium · Strawberry'},{qty:1,name:'Vanilla Cupcake',detail:'Box of 4'}],note:'“Happy Birthday Sarah!” on the cake.',allergens:[{icon:'🥜',label:'Nuts',text:'must be completely avoided. Cross-contamination risk.'}],total:38,pay:'Paid online'},
+ {id:'CK-2482',customer:'Michael Chen',phone:'(818) 555-0177',email:'m.chen@example.com',status:'placed',placedAt:'9:55 AM',pickup:'12:00 PM',timer:{level:'soon',text:'⏱ 2h to pickup'},items:[{qty:1,name:'Chocolate Cake',detail:'Large · Chocolate'}],note:'',allergens:[],total:28,pay:'Paid online'},
+ {id:'CK-2483',customer:'Emily Rodriguez',phone:'(818) 555-0108',email:'emily.r@example.com',status:'placed',placedAt:'10:10 AM',pickup:'1:00 PM',timer:{level:'ok',text:'✓ 3h to pickup'},items:[{qty:1,name:'Red Velvet Cake',detail:'Medium · Red Velvet'},{qty:3,name:'Croissant',detail:'Butter'}],note:'Extra frosting please. Dairy-free frosting only.',allergens:[{icon:'🥛',label:'Dairy-free',text:'request. No butter or cream in the frosting.'}],total:44,pay:'Cash on pickup'},
+ {id:'CK-2479',customer:'David Kim',phone:'(818) 555-0163',email:'d.kim@example.com',status:'baking',placedAt:'9:20 AM',startedAt:'9:30 AM',pickup:'11:00 AM',timer:{level:'urgent',text:'⚡ 30 min to pickup'},items:[{qty:1,name:'Vanilla Cupcake',detail:'Box of 6'}],note:'',allergens:[],total:20,pay:'Paid online'},
+ {id:'CK-2480',customer:'Lisa Park',phone:'(818) 555-0191',email:'lisa.p@example.com',status:'baking',placedAt:'9:40 AM',startedAt:'9:50 AM',pickup:'11:45 AM',timer:{level:'soon',text:'⏱ 1h to pickup'},items:[{qty:1,name:'Strawberry Cake',detail:'Small · Strawberry'}],note:'“Congratulations!” written on top.',allergens:[{icon:'🌾',label:'Gluten-free',text:'request. Use dedicated gluten-free equipment only.'}],total:18,pay:'Paid online'},
+ {id:'CK-2478',customer:'Tom Wilson',phone:'(818) 555-0125',email:'tom.w@example.com',status:'ready',placedAt:'8:30 AM',startedAt:'8:40 AM',readyAt:'9:15 AM',pickup:'10:00 AM',timer:null,items:[{qty:1,name:'Chocolate Cake',detail:'Medium · Chocolate'}],note:'',allergens:[],total:22,pay:'Paid online'}
+];
+let ORDERS=store.get('orders',SEED), qFilter='all', lastFocus=null;
+const saveOrders=()=>store.set('orders',ORDERS);
+const NEXT={placed:'baking',baking:'ready',ready:'done'};
+const ACTION={placed:['🔥 Start baking','action-btn-primary'],baking:['✅ Mark as ready','action-btn-ready'],ready:['📦 Mark as picked up','action-btn-primary']};
+const BADGE={placed:'Placed',baking:'Baking',ready:'Ready'};
+
+function cardHtml(o){
+  const st=o.status;
+  const when=st==='placed'?'Placed at '+o.placedAt:st==='baking'?'Baking since '+o.startedAt:'Ready since '+o.readyAt;
+  const timer=(st!=='ready'&&o.timer)?' <span class="pickup-timer '+o.timer.level+'">'+o.timer.text+'</span>':'';
+  let h='<article class="order-card'+(o.timer&&o.timer.level==='urgent'&&st!=='ready'?' priority':'')+'" data-status="'+st+'">';
+  h+='<div class="order-top"><div><div class="order-id">'+o.id+timer+'</div><div class="order-customer">'+esc(o.customer)+'</div><div class="order-time">'+when+' · Pickup '+o.pickup+'</div></div><div class="status-badge status-'+st+'">'+BADGE[st]+'</div></div>';
+  h+='<div class="order-items">'+o.items.map(i=>'<div class="order-item-tag"><strong>'+i.qty+'×</strong> '+esc(i.name)+' ('+esc(i.detail)+')</div>').join('')+'</div>';
+  o.allergens.forEach(a=>{h+='<div class="allergen-alert" role="alert">⚠️ <strong>ALLERGEN ALERT</strong> — <span class="allergen-badge">'+a.icon+' '+esc(a.label)+'</span> '+esc(a.text)+'</div>';});
+  if(o.note) h+='<div class="order-note"><strong>📝 Special instructions</strong>'+esc(o.note)+'</div>';
+  h+='<div class="order-meta"><div class="order-meta-item">💰 <strong>'+money(o.total)+'</strong></div><div class="order-meta-item">📍 <strong>Northridge</strong></div><div class="order-meta-item">💳 <strong>'+o.pay+'</strong></div></div>';
+  h+='<div class="order-actions"><button class="action-btn action-btn-secondary" onclick="openDetails(\''+o.id+'\')">View details</button><button class="action-btn '+ACTION[st][1]+'" onclick="advance(\''+o.id+'\')">'+ACTION[st][0]+'</button></div></article>';
+  return h;
+}
+function list(el,status,emptyMsg){
+  const rows=ORDERS.filter(o=>status?o.status===status:(o.status!=='done'&&(qFilter==='all'||o.status===qFilter)));
+  $(el).innerHTML=rows.length?rows.map(cardHtml).join(''):'<div class="empty"><div style="font-size:40px;margin-bottom:10px">🎉</div>'+emptyMsg+'</div>';
+}
+function renderBatch(){
+  const map={};
+  ORDERS.forEach(o=>{if(o.status==='done'||o.status==='ready')return;o.items.forEach(i=>{const k=i.name+'|'+i.detail;map[k]=map[k]||{name:i.name,detail:i.detail,placed:0,baking:0};map[k][o.status]+=i.qty;});});
+  const rows=Object.values(map).sort((a,b)=>a.name.localeCompare(b.name));
+  $('batch-body').innerHTML=rows.length?
+    '<table class="batch-table"><thead><tr><th>Item</th><th>To start</th><th>In oven</th><th>Total</th></tr></thead><tbody>'+
+    rows.map(r=>'<tr><td><b>'+esc(r.name)+'</b><br><span style="color:#777;font-size:12px">'+esc(r.detail)+'</span></td><td>'+r.placed+'</td><td>'+r.baking+'</td><td><b>'+(r.placed+r.baking)+'</b></td></tr>').join('')+'</tbody></table>':
+    '<div class="empty"><div style="font-size:40px;margin-bottom:10px">🎉</div>Nothing left to bake right now.</div>';
+}
+function updateCounts(){
+  const c={placed:0,baking:0,ready:0}; let urgent=0;
+  ORDERS.forEach(o=>{if(c[o.status]!==undefined){c[o.status]++;if(o.status!=='ready'&&o.timer&&o.timer.level==='urgent')urgent++;}});
+  $('st-placed').textContent=c.placed;$('st-baking').textContent=c.baking;$('st-ready').textContent=c.ready;$('st-urgent').textContent=urgent;
+  $('cnt-all').textContent=c.placed+c.baking+c.ready;$('cnt-placed').textContent=c.placed;$('cnt-baking').textContent=c.baking;$('cnt-ready').textContent=c.ready;
+  const q=$('queue-count'); q.textContent=c.placed; q.hidden=c.placed===0;
+}
+function renderAll(){
+  list('orders-list',null,'No orders in this stage.');
+  list('production-list','baking','Nothing in the oven right now.');
+  list('ready-list','ready','No orders waiting for pickup.');
+  renderBatch(); updateCounts();
+}
+function setFilter(f){
+  qFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.f===f));
+  list('orders-list',null,'No orders in this stage.');
+}
+function advance(id){
+  const o=ORDERS.find(x=>x.id===id); if(!o||!NEXT[o.status]) return;
+  const nx=NEXT[o.status]; o.status=nx;
+  if(nx==='baking') o.startedAt=timeNow();
+  if(nx==='ready') o.readyAt=timeNow();
+  saveOrders(); renderAll(); closeModal();
+  toast(id+' · '+({baking:'moved to Baking',ready:'marked Ready for pickup',done:'picked up and cleared from the board'})[nx]);
 }
 
-// Live clock
-function updateClock(){
-  const now = new Date();
-  const t = now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true});
-  const d = now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
-  const el = document.getElementById('current-time');
-  const cl = document.getElementById('clock-display');
-  if(el) el.textContent = 'Today · ' + t;
-  if(cl) cl.textContent = t;
+// ═══ ORDER DETAILS MODAL ═══
+function openDetails(id){
+  const o=ORDERS.find(x=>x.id===id); if(!o) return;
+  lastFocus=document.activeElement;
+  let h='<div class="modal-head"><div><div class="modal-title" id="modal-title">Order '+o.id+'</div><div style="margin-top:6px"><span class="status-badge status-'+o.status+'">'+BADGE[o.status]+'</span></div></div><button class="modal-x" id="modal-x" onclick="closeModal()" aria-label="Close details">×</button></div>';
+  h+='<div class="m-sec"><div class="m-h">Customer</div><div class="m-row"><span>Name</span><b>'+esc(o.customer)+'</b></div><div class="m-row"><span>Phone</span><b>'+esc(o.phone)+'</b></div><div class="m-row"><span>Email</span><b>'+esc(o.email)+'</b></div></div>';
+  h+='<div class="m-sec"><div class="m-h">Pickup</div><div class="m-row"><span>Time</span><b>'+o.pickup+'</b></div><div class="m-row"><span>Location</span><b>Northridge</b></div></div>';
+  h+='<div class="m-sec"><div class="m-h">Items</div>'+o.items.map(i=>'<div class="m-item">'+i.qty+'× '+esc(i.name)+'<small>'+esc(i.detail)+'</small></div>').join('')+'</div>';
+  if(o.allergens.length) h+='<div class="m-sec">'+o.allergens.map(a=>'<div class="allergen-alert" style="margin-bottom:8px">⚠️ <strong>ALLERGEN ALERT</strong> — <span class="allergen-badge">'+a.icon+' '+esc(a.label)+'</span> '+esc(a.text)+'</div>').join('')+'</div>';
+  if(o.note) h+='<div class="m-sec"><div class="order-note" style="margin-bottom:0"><strong>📝 Special instructions</strong>'+esc(o.note)+'</div></div>';
+  h+='<div class="m-sec"><div class="m-h">Payment</div><div class="m-row"><span>Method</span><b>'+o.pay+'</b></div><div class="m-row"><span>Total</span><b>'+money(o.total)+'</b></div></div>';
+  h+='<div class="order-actions"><button class="action-btn action-btn-secondary" onclick="closeModal()">Close</button><button class="action-btn '+ACTION[o.status][1]+'" onclick="advance(\''+o.id+'\')">'+ACTION[o.status][0]+'</button></div>';
+  $('modal-card').innerHTML=h; $('modal').hidden=false; $('modal-x').focus();
 }
-updateClock();
-setInterval(updateClock, 1000);
+function closeModal(){
+  if($('modal').hidden) return; $('modal').hidden=true;
+  if(lastFocus&&lastFocus.focus) lastFocus.focus();
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape') closeModal();});
 
-// Show view
-function showView(view){
-  document.querySelectorAll('[id^="view-"]').forEach(v=>v.style.display='none');
-  document.getElementById('view-'+view).style.display='block';
-  document.querySelectorAll('.sidebar-item').forEach(s=>s.classList.remove('active'));
-  event.currentTarget.classList.add('active');
+// ═══ SHIFT / CLOCK ═══
+const getShift=()=>store.get('shift',null);
+const fmtDur=ms=>{const m=Math.max(0,Math.floor(ms/60000));return Math.floor(m/60)+'h '+String(m%60).padStart(2,'0')+'m';};
+const fmtT=iso=>new Date(iso).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+function startShift(){store.set('shift',{start:new Date().toISOString(),out:null});}
+function clockToggle(){
+  const s=getShift(); if(!s||s.out){startShift();toast('Clocked in at '+timeNow());}
+  else{s.out=new Date().toISOString();store.set('shift',s);toast('Clocked out at '+timeNow());}
+  tick();
+}
+function tick(){
+  const now=new Date(), s=getShift();
+  $('current-time').textContent=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})+' · '+timeNow();
+  $('clock-display').textContent=timeNow();
+  $('clock-date').textContent=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  if(!s){return;}
+  const out=!!s.out, end=out?new Date(s.out):now, dur=fmtDur(end-new Date(s.start));
+  $('shift-label').textContent=out?'Shift ended':'Shift started';
+  $('shift-time').textContent=out?fmtT(s.out):fmtT(s.start);
+  $('shift-elapsed').textContent=(out?'Worked ':'')+dur+(out?'':' elapsed');
+  $('clock-status').textContent=out?'CLOCKED OUT':'CURRENT SHIFT';
+  $('clock-l1').textContent=out?'Clocked out':'Clocked in'; $('clock-v1').textContent=out?fmtT(s.out):fmtT(s.start);
+  $('clock-l2').textContent=out?'Worked':'Elapsed'; $('clock-v2').textContent=dur;
+  const b=$('clock-btn'); b.textContent=out?'Clock in':'Clock out'; b.style.background=out?'var(--forest)':'var(--raspberry)';
+}
+setInterval(tick,1000);
+
+// ═══ AUTH (demo) — TODO: replace with POST /api/login from Harut's server ═══
+const isAuthed=()=>store.get('auth',false)===true;
+function showLoginErr(m){const e=$('login-error');e.textContent=m;e.hidden=false;}
+function handleBakerLogin(e){
+  e.preventDefault();
+  const u=$('baker-username').value.trim(), p=$('baker-password').value;
+  if(!u||!p){showLoginErr('Enter your username and password.');return false;}
+  if(u==='baker'&&p==='oodel2026'){
+    store.set('auth',true); startShift(); $('login-error').hidden=true; $('baker-password').value='';
+    location.hash='#/queue';
+  } else showLoginErr('Invalid username or password. Please try again.');
+  return false;
+}
+function handleSignOut(){
+  store.del('auth'); closeModal(); $('baker-username').value=''; $('baker-password').value='';
+  $('login-error').hidden=true; location.hash='#/login'; toast('Signed out');
+}
+function togglePw(){
+  const i=$('baker-password'), show=i.type==='password';
+  i.type=show?'text':'password'; $('pw-toggle').textContent=show?'Hide':'Show'; $('pw-toggle').setAttribute('aria-label',show?'Hide password':'Show password');
 }
 
-// Filter orders
-function filterOrders(status, btn){
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('.order-card').forEach(card=>{
-    card.style.display = (status==='all' || card.dataset.status===status) ? 'block' : 'none';
-  });
+// ═══ ROUTER — #/login · #/queue · #/production · #/ready · #/batch · #/clock · anything else = 404 ═══
+const VIEWS={queue:'Orders queue',production:'In production',ready:'Ready for pickup',batch:'Batch production',clock:'Clock in / out','404':'Page not found'};
+function showLogin(){
+  $('portal-screen').hidden=true; $('login-screen').hidden=false; document.title='Staff sign in · Oodel Kitchen';
+  window.scrollTo(0,0); setTimeout(()=>$('baker-username').focus({preventScroll:true}),0);
 }
-
-// Update order status
-function updateStatus(btn, newStatus){
-  const card = btn.closest('.order-card');
-  const badge = card.querySelector('.status-badge');
-  card.dataset.status = newStatus;
-
-  if(newStatus === 'baking'){
-    badge.className = 'status-badge status-baking';
-    badge.textContent = 'Baking';
-    btn.className = 'action-btn action-btn-ready';
-    btn.textContent = '✅ Mark as ready';
-    btn.onclick = function(){ updateStatus(this,'ready'); };
-  } else if(newStatus === 'ready'){
-    badge.className = 'status-badge status-ready';
-    badge.textContent = 'Ready';
-    btn.parentElement.innerHTML = '<button class="action-btn action-btn-secondary" style="flex:2">Waiting for customer pickup</button>';
-    card.classList.remove('priority');
-  }
+function showView(v){
+  $('login-screen').hidden=true; $('portal-screen').hidden=false;
+  Object.keys(VIEWS).forEach(k=>$('view-'+k).hidden=k!==v);
+  document.querySelectorAll('.sidebar-item').forEach(a=>{const on=a.dataset.view===v;a.classList.toggle('active',on);if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
+  document.title=VIEWS[v]+' · Oodel Kitchen'; renderAll(); tick(); window.scrollTo(0,0);
+  const m=$('main'); m.setAttribute('tabindex','-1'); m.focus({preventScroll:true});
 }
+function route(){
+  const h=location.hash.replace(/^#\/?/,'');
+  if(!isAuthed()){ if(h!=='login'){location.replace('#/login');return;} return showLogin(); }
+  if(h===''||h==='login'){location.replace('#/queue');return;}
+  showView(Object.prototype.hasOwnProperty.call(VIEWS,h)&&h!=='404'?h:'404');
+}
+window.addEventListener('hashchange',route);
+if(isAuthed()&&!getShift()) startShift();
+route();
 </script>
-</div><!-- end portal-screen -->
 </body>
 </html>
