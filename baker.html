@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Oodel Kitchen — Baker Portal</title>
+<meta name="oodel-api-url" content="__OODEL_API_URL__">
 <meta name="description" content="Oodel kitchen portal for bakers and production staff.">
 <meta name="theme-color" content="#111111">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%232F4A3B'/%3E%3Cpath d='M16 7L7 24h18z' fill='none' stroke='%23FFFDF8' stroke-width='2.4' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='13' r='1.8' fill='%23C0335E'/%3E%3C/svg%3E">
@@ -272,7 +273,7 @@ a.sidebar-item{text-decoration:none}
       <div style="text-align:center;margin-top:14px;font-size:12px;color:#555">🔒 Staff access only</div>
     </form>
     <div style="text-align:center;margin-top:18px;font-size:12px;color:#555;line-height:1.7">
-      Demo access: <b style="color:#888">baker</b> / <b style="color:#888">oodel2026</b> (placeholder until the real login API is connected)<br>
+      Use the staff username and password configured in Render.<br>
       <a href="index.html#/" style="color:#888">← Back to the customer site</a>
     </div>
   </div>
@@ -382,6 +383,8 @@ a.sidebar-item{text-decoration:none}
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
 'use strict';
+const configuredApi=document.querySelector('meta[name="oodel-api-url"]')?.content||'';
+const API_BASE=(configuredApi.startsWith('__')?'http://127.0.0.1:8000':configuredApi).replace(/\/$/,'');
 const $=id=>document.getElementById(id);
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const timeNow=()=>new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
@@ -402,7 +405,7 @@ const SEED=[
  {id:'CK-2480',customer:'Lisa Park',phone:'(818) 555-0191',email:'lisa.p@example.com',status:'baking',placedAt:'9:40 AM',startedAt:'9:50 AM',pickup:'11:45 AM',timer:{level:'soon',text:'⏱ 1h to pickup'},items:[{qty:1,name:'Strawberry Cake',detail:'Small · Strawberry'}],note:'“Congratulations!” written on top.',allergens:[{icon:'🌾',label:'Gluten-free',text:'request. Use dedicated gluten-free equipment only.'}],total:18,pay:'Paid online'},
  {id:'CK-2478',customer:'Tom Wilson',phone:'(818) 555-0125',email:'tom.w@example.com',status:'ready',placedAt:'8:30 AM',startedAt:'8:40 AM',readyAt:'9:15 AM',pickup:'10:00 AM',timer:null,items:[{qty:1,name:'Chocolate Cake',detail:'Medium · Chocolate'}],note:'',allergens:[],total:22,pay:'Paid online'}
 ];
-let ORDERS=store.get('orders',SEED), qFilter='all', lastFocus=null;
+let ORDERS=store.get('orders',[]), qFilter='all', lastFocus=null;
 const saveOrders=()=>store.set('orders',ORDERS);
 const NEXT={placed:'baking',baking:'ready',ready:'done'};
 const ACTION={placed:['🔥 Start baking','action-btn-primary'],baking:['✅ Mark as ready','action-btn-ready'],ready:['📦 Mark as picked up','action-btn-primary']};
@@ -452,13 +455,22 @@ function setFilter(f){
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.f===f));
   list('orders-list',null,'No orders in this stage.');
 }
-function advance(id){
+const authHeader=()=>({Authorization:'Basic '+store.get('auth','')});
+async function staffApi(path,options={}){
+  const response=await fetch(API_BASE+path,{headers:{'Content-Type':'application/json',...authHeader(),...(options.headers||{})},...options});
+  let data={};try{data=await response.json();}catch(e){}
+  if(!response.ok)throw new Error(data.detail||'The server could not complete that request.');
+  return data;
+}
+async function loadOrders(){
+  try{ORDERS=await staffApi('/api/staff/orders/');saveOrders();renderAll();}
+  catch(e){if(/credentials|authentication/i.test(e.message)){store.del('auth');location.hash='#/login';}else toast(e.message);}
+}
+async function advance(id){
   const o=ORDERS.find(x=>x.id===id); if(!o||!NEXT[o.status]) return;
   const nx=NEXT[o.status]; o.status=nx;
-  if(nx==='baking') o.startedAt=timeNow();
-  if(nx==='ready') o.readyAt=timeNow();
-  saveOrders(); renderAll(); closeModal();
-  toast(id+' · '+({baking:'moved to Baking',ready:'marked Ready for pickup',done:'picked up and cleared from the board'})[nx]);
+  try{const updated=await staffApi('/api/staff/orders/'+encodeURIComponent(id)+'/status/',{method:'PATCH',body:JSON.stringify({status:nx})});const i=ORDERS.findIndex(x=>x.id===id);if(nx==='done')ORDERS.splice(i,1);else ORDERS[i]=updated;saveOrders();renderAll();closeModal();toast(id+' · '+({baking:'moved to Baking',ready:'marked Ready for pickup',done:'picked up and cleared from the board'})[nx]);}
+  catch(e){await loadOrders();toast(e.message);}
 }
 
 // ═══ ORDER DETAILS MODAL ═══
@@ -509,16 +521,18 @@ function tick(){
 setInterval(tick,1000);
 
 // ═══ AUTH (demo) — TODO: replace with POST /api/login from Harut's server ═══
-const isAuthed=()=>store.get('auth',false)===true;
+const isAuthed=()=>!!store.get('auth','');
 function showLoginErr(m){const e=$('login-error');e.textContent=m;e.hidden=false;}
-function handleBakerLogin(e){
+async function handleBakerLogin(e){
   e.preventDefault();
   const u=$('baker-username').value.trim(), p=$('baker-password').value;
   if(!u||!p){showLoginErr('Enter your username and password.');return false;}
-  if(u==='baker'&&p==='oodel2026'){
-    store.set('auth',true); startShift(); $('login-error').hidden=true; $('baker-password').value='';
+  const credentials=btoa(unescape(encodeURIComponent(u+':'+p)));
+  store.set('auth',credentials);
+  try{
+    await staffApi('/api/staff/login/',{method:'POST'});startShift();$('login-error').hidden=true;$('baker-password').value='';await loadOrders();
     location.hash='#/queue';
-  } else showLoginErr('Invalid username or password. Please try again.');
+  }catch(err){store.del('auth');showLoginErr('Invalid username or password. Please try again.');}
   return false;
 }
 function handleSignOut(){
@@ -552,6 +566,7 @@ function route(){
 window.addEventListener('hashchange',route);
 if(isAuthed()&&!getShift()) startShift();
 route();
+if(isAuthed())loadOrders();
 </script>
 </body>
 </html>

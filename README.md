@@ -14,7 +14,7 @@
 
 # Repository Branches
 - main : Contains the stable, tested version of the website.
-- dev :  Integration branch where features are combined and tested before being merged into main.
+- dev-branch : Integration branch where features are combined and tested before being merged into main.
 - feature/* : individual work branches and where individual features are implemented, designed, and merge 
   with dev branch, which eventually merges with main branch.
 
@@ -29,74 +29,79 @@
 Status: In Development 
 
 
-## Armando's Frontend and Backend Creations Steps and Secrets
+## Application Structure
 
-A short description of what this project does (for example: a hunting-focused mapping web app built for CIT 480).
+- `index.html` - customer ordering and order-tracking interface.
+- `baker.html` - authenticated bakery queue and production interface.
+- `frontend/` - static production build plus the preserved React/Vite starter for a future migration.
+- `backend/` - Django REST API, staff authentication, admin site, and order database models.
+- `render.yaml` - Render Blueprint for the frontend, API, and PostgreSQL database.
 
-## Project Structure
+The production frontend build copies the three root HTML pages into `frontend/dist` and injects the API URL. The browser never sends or stores card information. Until a payment processor is integrated, checkout supports cash on pickup only.
 
-- `frontend/` - the React app (what users see in the browser)
-- `backend/` - the Django app (the server and database logic)
+## Local Development
 
-## Prerequisites
+Prerequisites: Git, Node.js 24, and Python 3.14.
 
-Install these before you start:
+### Backend
 
-- Git
-- Node.js (LTS version)
-- Python 3
-
-## Getting Started
-
-### 1. Clone the repo
-
-```bash
-git clone <repo-link>
-cd <repo-folder-name>
-```
-
-### 2. Set up your environment files
-
-Copy each `.env.example` file to `.env` and fill in your own values:
-
-```bash
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
-```
-
-Then open each new `.env` file and replace the placeholder values with your own. Ask the team for any values you don't have.
-
-### 3. Run the backend
+Copy `backend/.env.example` to `backend/.env` and replace every placeholder. Then run:
 
 ```bash
 cd backend
-python3 -m venv venv
-source venv/bin/activate
-python3 -m pip install -r requirements.txt
-python3 manage.py runserver
+python -m venv .venv
 ```
 
-The backend runs at http://127.0.0.1:8000
+Activate the environment with `.venv\Scripts\activate` on Windows or `source .venv/bin/activate` on macOS/Linux, then run:
 
-Each time you open a new terminal to work on the backend, run `source venv/bin/activate` from inside `backend/` first.
+```bash
+python -m pip install -r requirements.txt
+python manage.py migrate
+python manage.py ensure_baker
+python manage.py runserver
+```
 
-### 4. Run the frontend
+The API runs at `http://127.0.0.1:8000`. Its health check is `/api/health/` and the Django admin is `/admin/`.
 
-Open a second terminal tab, then:
+### Frontend
+
+In a second terminal:
 
 ```bash
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 
-The frontend runs at http://localhost:5173
+The local frontend runs at `http://localhost:5173`. `npm run build` builds the production static prototype. Use `npm run dev:react` or `npm run build:react` only when working on the preserved React starter.
+
+### Checks
+
+```bash
+cd backend
+python manage.py check
+python manage.py makemigrations --check --dry-run
+python manage.py test
+
+cd ../frontend
+npm run build
+npm run lint
+```
+
+## Deploying to Render
+
+1. Push this branch to GitHub after reviewing it.
+2. In Render, select **New > Blueprint** and choose this repository and branch.
+3. Render reads `render.yaml` and proposes three resources: `oodel-web`, `oodel-api`, and `oodel-db`.
+4. Enter a strong `BAKER_PASSWORD` when Render prompts for the secret value.
+5. Apply the Blueprint and wait for all three resources to become healthy.
+6. Open the `oodel-web` URL. Use the configured `BAKER_USERNAME` and `BAKER_PASSWORD` on `baker.html#/login`.
+
+The free Render PostgreSQL plan expires after 30 days and has no backups. Upgrade or migrate the database before the expiration date if any real customer data is stored.
 
 ## Secrets and Environment Variables
 
-- Copy `.env.example` to `.env` and fill in your own values.
-- **Never commit real secrets.** This includes passwords, API keys, and tokens. The `.env` files are listed in `.gitignore` and must stay out of GitHub.
-- Only put fake or blank placeholder values in `.env.example`.
-- Variables in the frontend (anything starting with `VITE_`) are visible to anyone using the app, so never put secrets there.
-- Share real secrets through a private channel or a password manager, not in public chats or in the repo.
-- **If a secret is committed by accident, tell the team and change it right away.** Deleting the commit is not enough, because the secret may already have been copied.
+- Never commit passwords, database URLs, API keys, or real `.env` files.
+- Only placeholders belong in `.env.example`.
+- Frontend variables beginning with `VITE_` are public and must never contain secrets.
+- If a secret is committed, rotate it immediately; deleting the commit alone does not revoke it.
