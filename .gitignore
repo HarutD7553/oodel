@@ -5,12 +5,19 @@
 
 # Python
 venv/
+.venv/
 __pycache__/
 *.pyc
+*.sqlite3
+staticfiles/
 
 # Node
 node_modules/
 dist/
+
+# Test and coverage output
+.coverage
+htmlcov/
 
 # Mac
 .DS_Store

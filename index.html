@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Oodel — Order fresh, pick up in Northridge</title>
+<meta name="oodel-api-url" content="__OODEL_API_URL__">
 <meta name="description" content="Order fresh cakes, cupcakes and pastries online from Oodel. Pick up in Northridge.">
 <meta name="theme-color" content="#2F4A3B">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%232F4A3B'/%3E%3Cpath d='M16 7L7 24h18z' fill='none' stroke='%23FFFDF8' stroke-width='2.4' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='13' r='1.8' fill='%23C0335E'/%3E%3C/svg%3E">
@@ -479,33 +480,14 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--pistachio)
 
       <div class="section-title">Payment method</div>
       <div id="pay-options" role="radiogroup" aria-label="Payment method">
-        <div class="pay-opt active" role="radio" aria-checked="true" tabindex="0" data-method="card" onclick="selectPay(this)">
-          <span class="pay-ic">💳</span><div><div class="pay-name">Credit / Debit card</div><div class="pay-sub">Visa, Mastercard, Amex</div></div><span class="pay-dot"></span>
-        </div>
-        <div class="pay-opt" role="radio" aria-checked="false" tabindex="0" data-method="apple" onclick="selectPay(this)">
-          <span class="pay-ic">🍎</span><div><div class="pay-name">Apple Pay</div><div class="pay-sub">Touch ID or Face ID</div></div><span class="pay-dot"></span>
-        </div>
-        <div class="pay-opt" role="radio" aria-checked="false" tabindex="0" data-method="google" onclick="selectPay(this)">
-          <span class="pay-ic">🌐</span><div><div class="pay-name">Google Pay</div><div class="pay-sub">Pay with Google Wallet</div></div><span class="pay-dot"></span>
-        </div>
-        <div class="pay-opt" role="radio" aria-checked="false" tabindex="0" data-method="cash" onclick="selectPay(this)">
+        <div class="pay-opt active" role="radio" aria-checked="true" tabindex="0" data-method="cash" onclick="selectPay(this)">
           <span class="pay-ic">💵</span><div><div class="pay-name">Cash on pickup</div><div class="pay-sub">Pay when you collect your order</div></div><span class="pay-dot"></span>
         </div>
       </div>
-
-      <div id="card-fields">
-        <div class="field" id="f-cc-num"><label class="label" for="cc-num">Card number</label><input class="input" id="cc-num" inputmode="numeric" autocomplete="cc-number" placeholder="1234 5678 9012 3456" maxlength="23" oninput="fmtCard(this)"><div class="field-error" id="err-cc-num" role="alert"></div></div>
-        <div style="display:flex;gap:12px">
-          <div class="field" id="f-cc-exp" style="flex:1"><label class="label" for="cc-exp">Expiry</label><input class="input" id="cc-exp" inputmode="numeric" autocomplete="cc-exp" placeholder="MM / YY" maxlength="7" oninput="fmtExp(this)"><div class="field-error" id="err-cc-exp" role="alert"></div></div>
-          <div class="field" id="f-cc-cvv" style="flex:1"><label class="label" for="cc-cvv">CVV</label><input class="input" id="cc-cvv" inputmode="numeric" autocomplete="cc-csc" placeholder="123" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'')"><div class="field-error" id="err-cc-cvv" role="alert"></div></div>
-        </div>
-        <div class="field" id="f-cc-name"><label class="label" for="cc-name">Name on card</label><input class="input" id="cc-name" autocomplete="cc-name" placeholder="Name on card"><div class="hint">Demo mode, no real payment is taken. Try 4242 4242 4242 4242 with any future date.</div><div class="field-error" id="err-cc-name" role="alert"></div></div>
-      </div>
-
       <div style="display:flex;align-items:center;gap:8px;margin:4px 0 20px;padding:10px 14px;background:var(--white);border:1px solid var(--line);border-radius:var(--radius-sm)">
-        <span style="font-size:14px">🔒</span><span style="font-size:12px;color:var(--muted)">Your payment is secured with 256-bit SSL encryption</span>
+        <span style="font-size:14px">ℹ️</span><span style="font-size:12px;color:var(--muted)">Online payments are not connected yet. No card information is collected.</span>
       </div>
-      <button class="btn btn-primary" id="co-pay" onclick="placeOrder()">Pay</button>
+      <button class="btn btn-primary" id="co-pay" onclick="placeOrder()">Place order</button>
     </div>
   </div>
 </div>
@@ -589,6 +571,17 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--pistachio)
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
 'use strict';
+const configuredApi=document.querySelector('meta[name="oodel-api-url"]')?.content||'';
+const API_BASE=(configuredApi.startsWith('__')?'http://127.0.0.1:8000':configuredApi).replace(/\/$/,'');
+async function api(path,options={}){
+  const response=await fetch(API_BASE+path,{headers:{'Content-Type':'application/json',...(options.headers||{})},...options});
+  let data={}; try{data=await response.json();}catch(e){}
+  if(!response.ok){
+    const first=Object.values(data).flat().find(Boolean);
+    throw new Error(typeof first==='string'?first:(data.detail||'The server could not complete that request.'));
+  }
+  return data;
+}
 // ═══ DATA — Harut's API will replace these with real menu items and prices ═══
 const TAX=0.095, STORE='Northridge';
 const MENU={
@@ -628,9 +621,10 @@ function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show')
 // ═══ STATE (kept across refresh for this browser session) ═══
 let cart=store.get('cart',[]), orders=store.get('orders',[]);
 let currentOrder=store.get('current',null), lastOrderId=store.get('last',null);
-let cur=null, payMethod='card', paying=false, activeCat='all';
+let cur=null, payMethod='cash', paying=false, activeCat='all';
 const findOrder=id=>id===SEED.id?SEED:orders.find(o=>o.id===id);
 const saveCart=()=>store.set('cart',cart), saveOrders=()=>store.set('orders',orders);
+function cacheOrder(order){const i=orders.findIndex(o=>o.id===order.id);if(i>=0)orders[i]=order;else orders.push(order);saveOrders();return order;}
 
 // ═══ ROUTER — #/ · #/menu · #/item/:id · #/checkout · #/confirmation · #/track · anything else = 404 ═══
 const TITLES={0:'Oodel — Order fresh, pick up in Northridge',1:'Menu · Oodel',2:'Customize your order · Oodel',3:'Checkout · Oodel',4:'Order confirmed · Oodel',5:'Track your order · Oodel',6:'Page not found · Oodel'};
@@ -666,16 +660,18 @@ function route(){
 window.addEventListener('hashchange',route);
 
 // ═══ WELCOME / ORDER LOOKUP ═══
-function handleLookup(){
+async function handleLookup(){
   const email=$('login-email').value.trim(), raw=$('login-order').value.trim().toUpperCase();
   $('login-error').style.display='none'; setErr('login-email',''); setErr('login-order','');
   let bad=false;
   if(!validEmail(email)){setErr('login-email','Enter a valid email address.');bad=true;}
-  const m=raw.match(/^CK-?(\d{4})$/);
+  const m=raw.match(/^CK-?(\d{4,6})$/);
   if(!raw){setErr('login-order','Enter your order number.');bad=true;}
   else if(!m){setErr('login-order','Order numbers look like CK-2481.');bad=true;}
   if(bad){focusFirstError();return;}
-  const id='CK-'+m[1], o=findOrder(id);
+  const id='CK-'+m[1]; let o=findOrder(id);
+  try{if(!o)o=cacheOrder(await api('/api/orders/'+encodeURIComponent(id)+'/?email='+encodeURIComponent(email)));}
+  catch(e){o=null;}
   if(!o||(!o.demo&&o.email&&o.email.toLowerCase()!==email.toLowerCase())){
     $('login-error-text').textContent='We couldn’t find order '+id+' for that email. Check the details and try again.';
     $('login-error').style.display='flex'; return;
@@ -794,11 +790,16 @@ function validExp(v){
 }
 function selectPay(el){
   document.querySelectorAll('.pay-opt').forEach(o=>{const on=o===el;o.classList.toggle('active',on);o.setAttribute('aria-checked',on);});
-  payMethod=el.dataset.method; $('card-fields').style.display=payMethod==='card'?'block':'none'; updatePayLabel();
+  payMethod=el.dataset.method; const fields=$('card-fields');if(fields)fields.style.display=payMethod==='card'?'block':'none';updatePayLabel();
 }
 
 // ═══ PLACE ORDER → CONFIRMATION ═══
-function placeOrder(){
+function pickupIso(date,label){
+  const m=label.match(/^(\d{1,2}):(\d{2})\s+(AM|PM)$/i); if(!m)return null;
+  let hour=Number(m[1])%12;if(m[3].toUpperCase()==='PM')hour+=12;
+  const d=new Date(date+'T00:00:00');d.setHours(hour,Number(m[2]),0,0);return d.toISOString();
+}
+async function placeOrder(){
   if(paying||!cart.length) return;
   let bad=false; const chk=(k,ok,msg)=>{setErr(k,ok?'':msg);if(!ok)bad=true;};
   const name=$('co-name').value.trim(), email=$('co-email').value.trim(), phone=$('co-phone').value.trim();
@@ -808,23 +809,13 @@ function placeOrder(){
   chk('co-phone',!phone||phone.replace(/\D/g,'').length>=10,'Enter a 10-digit phone number, or leave it blank.');
   chk('co-date',!!date&&date>=todayStr(),date?'Choose today or a later date.':'Choose a pickup date.');
   chk('co-time',!!time,'Choose a pickup time.');
-  if(payMethod==='card'){
-    chk('cc-num',(n=>n.length>=13&&n.length<=19)($('cc-num').value.replace(/\D/g,'')),'Enter a valid card number.');
-    chk('cc-exp',validExp($('cc-exp').value),'Enter a valid expiry date (MM / YY).');
-    chk('cc-cvv',/^\d{3,4}$/.test($('cc-cvv').value),'Enter the 3 or 4-digit security code.');
-    chk('cc-name',$('cc-name').value.trim().length>=2,'Enter the name on the card.');
-  } else {['cc-num','cc-exp','cc-cvv','cc-name'].forEach(k=>setErr(k,''));}
   if(bad){focusFirstError();return;}
   paying=true; const btn=$('co-pay'); btn.disabled=true; btn.textContent='Processing…';
-  setTimeout(()=>{
-    const id='CK-'+(2482+orders.length), t=totals();
-    const d=new Date(date+'T00:00:00');
-    orders.push({id,demo:false,email,name,phone,pay:payMethod==='cash'?'cash':'paid',stage:0,placedAt:timeNow(),
-      pickup:d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' · '+time,
-      items:cart.map(l=>({name:l.name,detail:l.detail,qty:l.qty,unit:l.unit,note:l.note})),totals:t});
-    lastOrderId=currentOrder=id; saveOrders(); store.set('last',id); store.set('current',id);
+  try{
+    const order=await api('/api/orders/',{method:'POST',body:JSON.stringify({name,email,phone,pickup_at:pickupIso(date,time),payment:'cash',items:cart.map(l=>({product_id:l.id,detail:l.detail,quantity:l.qty,note:l.note}))})});
+    cacheOrder(order);lastOrderId=currentOrder=order.id;store.set('last',order.id);store.set('current',order.id);
     cart=[]; saveCart(); updateCartBadge(); paying=false; btn.disabled=false; goTo(4);
-  },900);
+  }catch(e){paying=false;btn.disabled=false;updatePayLabel();toast(e.message||'Could not place the order. Please try again.');}
 }
 function renderConfirmation(){
   const o=findOrder(lastOrderId);
@@ -858,18 +849,22 @@ function renderTracker(){
   paintStage(o); setErr('notify','');
   if(o.notify) showNotifyDone(o.notify); else {$('notify-form').hidden=false;$('notify-done').hidden=true;$('notify-email').value=o.email||'';}
 }
-function setTrackerState(i){const o=findOrder(currentOrder);o.stage=i;if(!o.demo)saveOrders();paintStage(o);}
-function refreshStatus(btn){
+function setTrackerState(i){const o=findOrder(currentOrder);if(!o.demo){toast('Only bakery staff can change a real order status.');return;}o.stage=i;paintStage(o);}
+async function refreshStatus(btn){
   btn.disabled=true; const t=btn.textContent; btn.textContent='Refreshing…';
-  setTimeout(()=>{btn.disabled=false;btn.textContent=t;toast('Up to date · checked '+timeNow());},700);
+  const o=findOrder(currentOrder);
+  try{if(!o.demo){const fresh=cacheOrder(await api('/api/orders/'+encodeURIComponent(o.id)+'/?email='+encodeURIComponent(o.email)));paintStage(fresh);}toast('Up to date · checked '+timeNow());}
+  catch(e){toast(e.message);}finally{btn.disabled=false;btn.textContent=t;}
 }
 function showNotifyDone(addr){$('notify-addr').textContent=addr;$('notify-form').hidden=true;$('notify-done').hidden=false;}
-function notifyMe(){
+async function notifyMe(){
   const v=$('notify-email').value.trim();
   if(!validEmail(v)){setErr('notify','Enter a valid email address.');$('notify-email').focus();return;}
-  setErr('notify',''); const o=findOrder(currentOrder); o.notify=v; if(!o.demo) saveOrders(); showNotifyDone(v);
+  setErr('notify',''); const o=findOrder(currentOrder);
+  try{if(!o.demo)await api('/api/orders/'+encodeURIComponent(o.id)+'/notification/',{method:'PATCH',body:JSON.stringify({email:o.email,notification_email:v})});o.notify=v;if(!o.demo)saveOrders();showNotifyDone(v);}
+  catch(e){setErr('notify',e.message);}
 }
-function changeNotify(){const o=findOrder(currentOrder);o.notify=null;if(!o.demo)saveOrders();$('notify-form').hidden=false;$('notify-done').hidden=true;$('notify-email').focus();}
+async function changeNotify(){const o=findOrder(currentOrder);try{if(!o.demo)await api('/api/orders/'+encodeURIComponent(o.id)+'/notification/',{method:'PATCH',body:JSON.stringify({email:o.email,notification_email:''})});o.notify=null;if(!o.demo)saveOrders();$('notify-form').hidden=false;$('notify-done').hidden=true;$('notify-email').focus();}catch(e){toast(e.message);}}
 
 // ═══ KEYBOARD: let Enter/Space activate role="button" and role="radio" elements ═══
 document.addEventListener('keydown',e=>{

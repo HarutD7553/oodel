@@ -4,8 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "node scripts/build-static.mjs && vite dist",
+    "dev:react": "vite",
+    "build": "node scripts/build-static.mjs",
+    "build:react": "vite build",
     "lint": "oxlint",
     "preview": "vite preview"
   },
