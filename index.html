@@ -382,7 +382,7 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--pistachio)
     <div class="error-box" id="login-error" role="alert" style="display:none"><span>⚠️</span><span id="login-error-text"></span></div>
     <div class="field" id="f-login-email"><label class="label" for="login-email">Email address</label><input class="input" type="email" id="login-email" placeholder="your@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')handleLookup()"><div class="field-error" id="err-login-email" role="alert"></div></div>
     <div class="field" id="f-login-order"><label class="label" for="login-order">Order number</label><input class="input" type="text" id="login-order" placeholder="e.g. CK-2481" autocomplete="off" onkeydown="if(event.key==='Enter')handleLookup()"><div class="hint">Demo: try order <b>CK-2481</b> with any email.</div><div class="field-error" id="err-login-order" role="alert"></div></div>
-    <button class="btn btn-primary" onclick="handleLookup()">Track my order</button>
+    <button class="btn btn-primary" id="lookup-btn" onclick="handleLookup()">Track my order</button>
     <div class="divider">or</div>
     <button class="btn btn-secondary" onclick="goTo(1)">Browse our menu</button>
     <div class="hint" style="text-align:center;margin-top:20px">Guest checkout available · No account needed</div>
@@ -487,6 +487,7 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--pistachio)
       <div style="display:flex;align-items:center;gap:8px;margin:4px 0 20px;padding:10px 14px;background:var(--white);border:1px solid var(--line);border-radius:var(--radius-sm)">
         <span style="font-size:14px">ℹ️</span><span style="font-size:12px;color:var(--muted)">Online payments are not connected yet. No card information is collected.</span>
       </div>
+      <div class="error-box" id="co-error" role="alert" style="display:none"><span>⚠️</span><span id="co-error-text"></span></div>
       <button class="btn btn-primary" id="co-pay" onclick="placeOrder()">Place order</button>
     </div>
   </div>
@@ -539,7 +540,7 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--pistachio)
         <div class="email-block-title">Get notified when your order is ready</div>
         <div id="f-notify"><div class="email-row">
           <input class="email-input" type="email" id="notify-email" placeholder="your@email.com" aria-label="Email for notifications" autocomplete="email" onkeydown="if(event.key==='Enter')notifyMe()">
-          <button class="email-btn" onclick="notifyMe()">Notify me</button>
+          <button class="email-btn" id="notify-btn" onclick="notifyMe()">Notify me</button>
         </div><div class="field-error" id="err-notify" role="alert"></div></div>
       </div>
       <div id="notify-done" class="notify-done" hidden>
@@ -573,16 +574,32 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--pistachio)
 'use strict';
 const configuredApi=document.querySelector('meta[name="oodel-api-url"]')?.content||'';
 const API_BASE=(configuredApi.startsWith('__')?'http://127.0.0.1:8000':configuredApi).replace(/\/$/,'');
-async function api(path,options={}){
-  const response=await fetch(API_BASE+path,{headers:{'Content-Type':'application/json',...(options.headers||{})},...options});
+const REQUEST_TIMEOUT_MS=70000, WAKE_NOTICE_MS=4000, TRACK_POLL_MS=15000;
+
+// ═══ API HELPER: friendly errors, timeout, and a "server is waking up" notice (free Render sleeps when idle) ═══
+class ApiError extends Error{constructor(message,kind,status){super(message);this.kind=kind;this.status=status;}}
+async function api(path,{quiet,...options}={}){
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),REQUEST_TIMEOUT_MS);
+  let wakeShown=false;
+  const wake=quiet?null:setTimeout(()=>{wakeShown=true;toast('The server is waking up. This can take up to a minute…',9000);},WAKE_NOTICE_MS);
+  let response;
+  try{
+    response=await fetch(API_BASE+path,{...options,headers:{'Content-Type':'application/json',...(options.headers||{})},signal:controller.signal});
+  }catch(e){
+    throw new ApiError(e.name==='AbortError'?'The server took too long to answer. Please try again in a moment.':'We couldn’t reach the server. Check your connection and try again.','network');
+  }finally{
+    clearTimeout(timeout); clearTimeout(wake); if(wakeShown) hideToast();
+  }
   let data={}; try{data=await response.json();}catch(e){}
   if(!response.ok){
     const first=Object.values(data).flat().find(Boolean);
-    throw new Error(typeof first==='string'?first:(data.detail||'The server could not complete that request.'));
+    throw new ApiError(typeof first==='string'?first:(data.detail||'The server could not complete that request.'),'http',response.status);
   }
   return data;
 }
-// ═══ DATA — Harut's API will replace these with real menu items and prices ═══
+
+// ═══ MENU DATA — hardcoded for now. Prices and detail text must match what the backend accepts ═══
 const TAX=0.095, STORE='Northridge';
 const MENU={
   strawberry:{name:'Strawberry Cake',emoji:'🍓',type:'cake',flavor:'Strawberry',blurb:'Fresh strawberries and cream between soft vanilla sponge.',sizes:{Small:18,Medium:24,Large:32}},
@@ -592,12 +609,13 @@ const MENU={
   croissant:{name:'Croissant',emoji:'🥐',type:'piece',blurb:'Flaky, buttery and baked fresh every morning.',price:6,variants:['Butter','Almond','Chocolate']}
 };
 const CAKE_FLAVORS=['Strawberry','Vanilla','Chocolate','Lemon','Red Velvet'];
+// Demo order for presentations. It is never stored on the server.
 const SEED={id:'CK-2481',demo:true,email:null,name:'Demo customer',pickup:'11:35 am',placedAt:'10:42 am',pay:'card',stage:0,items:[]};
 
 // ═══ HELPERS ═══
 const $=id=>document.getElementById(id);
-const money=n=>'$'+n.toFixed(2);
-const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const money=n=>'$'+Number(n||0).toFixed(2);
+const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const validEmail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
 const unitPrice=(it,c)=>it.type==='cake'?it.sizes[c.opt]:it.type==='box'?it.packs[c.opt]:it.price;
 const timeNow=()=>new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
@@ -616,15 +634,20 @@ function focusFirstError(){
   if(el){el.scrollIntoView({block:'center',behavior:'smooth'});el.focus({preventScroll:true});}
 }
 let toastT;
-function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600);}
+function toast(msg,ms=2600){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),ms);}
+function hideToast(){clearTimeout(toastT);$('toast').classList.remove('show');}
 
 // ═══ STATE (kept across refresh for this browser session) ═══
 let cart=store.get('cart',[]), orders=store.get('orders',[]);
 let currentOrder=store.get('current',null), lastOrderId=store.get('last',null);
-let cur=null, payMethod='cash', paying=false, activeCat='all';
+let cur=null, payMethod='cash', paying=false, activeCat='all', pollTimer=null;
 const findOrder=id=>id===SEED.id?SEED:orders.find(o=>o.id===id);
 const saveCart=()=>store.set('cart',cart), saveOrders=()=>store.set('orders',orders);
-function cacheOrder(order){const i=orders.findIndex(o=>o.id===order.id);if(i>=0)orders[i]=order;else orders.push(order);saveOrders();return order;}
+function cacheOrder(order){
+  const i=orders.findIndex(o=>o.id===order.id);
+  if(i>=0) orders[i]={...orders[i],...order}; else orders.push(order);
+  saveOrders(); return orders[i>=0?i:orders.length-1];
+}
 
 // ═══ ROUTER — #/ · #/menu · #/item/:id · #/checkout · #/confirmation · #/track · anything else = 404 ═══
 const TITLES={0:'Oodel — Order fresh, pick up in Northridge',1:'Menu · Oodel',2:'Customize your order · Oodel',3:'Checkout · Oodel',4:'Order confirmed · Oodel',5:'Track your order · Oodel',6:'Page not found · Oodel'};
@@ -638,6 +661,7 @@ function show(n){
   const sc=$('screen-'+n); sc.setAttribute('tabindex','-1'); sc.focus({preventScroll:true});
 }
 function route(){
+  stopPolling();
   const h=location.hash.replace(/^#/,'')||'/'; let m;
   if(h==='/') return show(0);
   if(h==='/menu') return show(1);
@@ -669,13 +693,16 @@ async function handleLookup(){
   if(!raw){setErr('login-order','Enter your order number.');bad=true;}
   else if(!m){setErr('login-order','Order numbers look like CK-2481.');bad=true;}
   if(bad){focusFirstError();return;}
-  const id='CK-'+m[1]; let o=findOrder(id);
-  try{if(!o)o=cacheOrder(await api('/api/orders/'+encodeURIComponent(id)+'/?email='+encodeURIComponent(email)));}
-  catch(e){o=null;}
-  if(!o||(!o.demo&&o.email&&o.email.toLowerCase()!==email.toLowerCase())){
-    $('login-error-text').textContent='We couldn’t find order '+id+' for that email. Check the details and try again.';
-    $('login-error').style.display='flex'; return;
+  const id='CK-'+m[1], notFound='We couldn’t find order '+id+' for that email. Check the details and try again.';
+  const fail=msg=>{$('login-error-text').textContent=msg;$('login-error').style.display='flex';};
+  let o=findOrder(id);
+  if(!o){
+    const btn=$('lookup-btn'); btn.disabled=true; btn.textContent='Looking…';
+    try{o=cacheOrder(await api('/api/orders/'+encodeURIComponent(id)+'/?email='+encodeURIComponent(email)));}
+    catch(e){fail(e.kind==='network'?e.message:notFound);return;}
+    finally{btn.disabled=false;btn.textContent='Track my order';}
   }
+  if(!o.demo&&o.email&&o.email.toLowerCase()!==email.toLowerCase()){fail(notFound);return;}
   currentOrder=id; store.set('current',id); goTo(5);
 }
 
@@ -781,16 +808,9 @@ function buildTimes(){
   }
   sel.innerHTML=o; if(keep&&[...sel.options].some(x=>x.value===keep&&!x.disabled)) sel.value=keep;
 }
-function fmtCard(el){const d=el.value.replace(/\D/g,'').slice(0,19);el.value=d.replace(/(.{4})/g,'$1 ').trim();}
-function fmtExp(el){const d=el.value.replace(/\D/g,'').slice(0,4);el.value=d.length>2?d.slice(0,2)+' / '+d.slice(2):d;}
-function validExp(v){
-  const m=v.match(/^(\d{2})\s*\/\s*(\d{2})$/); if(!m) return false;
-  const mo=+m[1], yr=2000+(+m[2]); if(mo<1||mo>12) return false;
-  return new Date(yr,mo,0,23,59,59)>=new Date();
-}
 function selectPay(el){
   document.querySelectorAll('.pay-opt').forEach(o=>{const on=o===el;o.classList.toggle('active',on);o.setAttribute('aria-checked',on);});
-  payMethod=el.dataset.method; const fields=$('card-fields');if(fields)fields.style.display=payMethod==='card'?'block':'none';updatePayLabel();
+  payMethod=el.dataset.method; updatePayLabel();
 }
 
 // ═══ PLACE ORDER → CONFIRMATION ═══
@@ -804,67 +824,100 @@ async function placeOrder(){
   let bad=false; const chk=(k,ok,msg)=>{setErr(k,ok?'':msg);if(!ok)bad=true;};
   const name=$('co-name').value.trim(), email=$('co-email').value.trim(), phone=$('co-phone').value.trim();
   const date=$('co-date').value, time=$('co-time').value;
+  $('co-error').style.display='none';
   chk('co-name',name.length>=2,'Enter your full name.');
   chk('co-email',validEmail(email),'Enter a valid email address.');
   chk('co-phone',!phone||phone.replace(/\D/g,'').length>=10,'Enter a 10-digit phone number, or leave it blank.');
   chk('co-date',!!date&&date>=todayStr(),date?'Choose today or a later date.':'Choose a pickup date.');
   chk('co-time',!!time,'Choose a pickup time.');
   if(bad){focusFirstError();return;}
-  paying=true; const btn=$('co-pay'); btn.disabled=true; btn.textContent='Processing…';
+  paying=true; const btn=$('co-pay'); btn.disabled=true; btn.textContent='Placing your order…';
   try{
     const order=await api('/api/orders/',{method:'POST',body:JSON.stringify({name,email,phone,pickup_at:pickupIso(date,time),payment:'cash',items:cart.map(l=>({product_id:l.id,detail:l.detail,quantity:l.qty,note:l.note}))})});
     cacheOrder(order);lastOrderId=currentOrder=order.id;store.set('last',order.id);store.set('current',order.id);
     cart=[]; saveCart(); updateCartBadge(); paying=false; btn.disabled=false; goTo(4);
-  }catch(e){paying=false;btn.disabled=false;updatePayLabel();toast(e.message||'Could not place the order. Please try again.');}
+  }catch(e){
+    paying=false; btn.disabled=false; updatePayLabel();
+    $('co-error-text').textContent=(e.message||'We couldn’t place the order.')+' Your cart is still saved.';
+    const box=$('co-error'); box.style.display='flex'; box.scrollIntoView({block:'center',behavior:'smooth'});
+  }
 }
 function renderConfirmation(){
   const o=findOrder(lastOrderId);
-  $('confirm-sub').innerHTML='Your order <b>'+o.id+'</b> has been received. We’ll start baking it shortly.';
+  $('confirm-sub').innerHTML='Your order <b>'+esc(o.id)+'</b> has been received. We’ll start baking it shortly.';
   $('confirm-summary').innerHTML=
-    o.items.map(l=>'<div class="summary-row"><span class="summary-key">'+l.qty+'× '+l.name+'<small>'+esc(l.detail)+'</small></span><span class="summary-val">'+money(l.unit*l.qty)+'</span></div>').join('')+
-    '<div class="summary-row"><span class="summary-key">Pickup</span><span class="summary-val">'+o.pickup+'</span></div>'+
+    (o.items||[]).map(l=>'<div class="summary-row"><span class="summary-key">'+esc(l.qty)+'× '+esc(l.name)+'<small>'+esc(l.detail)+'</small></span><span class="summary-val">'+money(l.unit*l.qty)+'</span></div>').join('')+
+    '<div class="summary-row"><span class="summary-key">Pickup</span><span class="summary-val">'+esc(o.pickup)+'</span></div>'+
     '<div class="summary-row"><span class="summary-key">Location</span><span class="summary-val">'+STORE+'</span></div>'+
-    '<div class="summary-row"><span class="summary-key">Tax (9.5%)</span><span class="summary-val">'+money(o.totals.tax)+'</span></div>'+
-    '<div class="summary-row"><span class="summary-key">Total</span><span class="summary-val">'+money(o.totals.total)+'</span></div>';
+    '<div class="summary-row"><span class="summary-key">Tax (9.5%)</span><span class="summary-val">'+money(o.totals&&o.totals.tax)+'</span></div>'+
+    '<div class="summary-row"><span class="summary-key">Total</span><span class="summary-val">'+money(o.totals&&o.totals.total)+'</span></div>';
 }
 
 // ═══ TRACKER ═══
 const STAGES=[
-  {demo:['53','minutes away'],word:'Placed',pct:'0%',dots:['active','',''],title:'Order placed',body:o=>'We received your order at '+o.placedAt+'. It goes to the pastry bench shortly.'},
+  {demo:['53','minutes away'],word:'Placed',pct:'0%',dots:['active','',''],title:'Order placed',body:o=>'We received your order at '+(o.placedAt||'—')+'. It goes to the pastry bench shortly.'},
   {demo:['21','minutes away'],word:'Baking',pct:'50%',dots:['done','active',''],title:'Now baking',body:()=>'Your order is in the oven. We’ll let you know as soon as it’s ready for pickup.'},
   {demo:['Ready',''],word:'Ready',pct:'100%',dots:['done','done','active'],title:'Your order is ready!',body:()=>'Head to '+STORE+' to pick up your order. Show this screen at the counter.'}
 ];
 function paintStage(o){
-  const s=STAGES[o.stage];
-  $('eta-num').textContent=o.demo?s.demo[0]:s.word; $('eta-unit').textContent=o.demo?s.demo[1]:'';
-  $('progress-fill').style.width=s.pct; $('status-title').textContent=s.title; $('status-body').textContent=s.body(o);
-  for(let i=0;i<3;i++){$('dot-'+i).className='stage-dot '+(s.dots[i]||'');$('lbl-'+i).className='stage-label '+(s.dots[i]?'active':'');}
-  document.querySelectorAll('.state-tab').forEach((t,i)=>{t.classList.toggle('active',i===o.stage);t.setAttribute('aria-pressed',i===o.stage);});
+  const stage=Math.min(Math.max(Number(o.stage)||0,0),2), s=STAGES[stage];
+  const pickedUp=!o.demo&&(o.status==='done'||o.status==='picked_up'||Number(o.stage)>2);
+  $('eta-num').textContent=pickedUp?'Picked up':(o.demo?s.demo[0]:s.word); $('eta-unit').textContent=(o.demo&&!pickedUp)?s.demo[1]:'';
+  $('progress-fill').style.width=pickedUp?'100%':s.pct;
+  $('status-title').textContent=pickedUp?'Picked up':s.title;
+  $('status-body').textContent=pickedUp?'This order has been picked up. Thank you!':s.body(o);
+  const dots=pickedUp?['done','done','done']:s.dots;
+  for(let i=0;i<3;i++){$('dot-'+i).className='stage-dot '+(dots[i]||'');$('lbl-'+i).className='stage-label '+(dots[i]?'active':'');}
+  document.querySelectorAll('.state-tab').forEach((t,i)=>{t.classList.toggle('active',i===stage);t.setAttribute('aria-pressed',i===stage);});
 }
 function renderTracker(){
   const o=findOrder(currentOrder);
+  // Stage preview buttons are only for the demo order. Real orders are moved by the baker.
+  document.querySelectorAll('.state-tabs,.demo-label').forEach(el=>{el.hidden=!o.demo;});
   $('trk-order').textContent='Order '+o.id;
   $('trk-pickup').textContent=(o.demo?'Pickup by ':'Pickup ')+o.pickup+' · '+STORE;
   $('trk-tag').textContent=o.pay==='cash'?'Pay at pickup · Pickup in store':'Paid · Pickup in store';
   paintStage(o); setErr('notify','');
   if(o.notify) showNotifyDone(o.notify); else {$('notify-form').hidden=false;$('notify-done').hidden=true;$('notify-email').value=o.email||'';}
+  startPolling(); refreshOrder(true);
+}
+function stopPolling(){clearInterval(pollTimer);pollTimer=null;}
+function startPolling(){
+  stopPolling(); const o=findOrder(currentOrder); if(!o||o.demo) return;
+  pollTimer=setInterval(()=>{if(!document.hidden) refreshOrder(true);},TRACK_POLL_MS);
+}
+async function refreshOrder(quiet){
+  const o=findOrder(currentOrder); if(!o||o.demo) return;
+  try{
+    const fresh=cacheOrder(await api('/api/orders/'+encodeURIComponent(o.id)+'/?email='+encodeURIComponent(o.email),{quiet}));
+    if(fresh.id===currentOrder&&$('screen-5').classList.contains('active')) paintStage(fresh);
+  }catch(e){if(!quiet) throw e;}
 }
 function setTrackerState(i){const o=findOrder(currentOrder);if(!o.demo){toast('Only bakery staff can change a real order status.');return;}o.stage=i;paintStage(o);}
 async function refreshStatus(btn){
   btn.disabled=true; const t=btn.textContent; btn.textContent='Refreshing…';
-  const o=findOrder(currentOrder);
-  try{if(!o.demo){const fresh=cacheOrder(await api('/api/orders/'+encodeURIComponent(o.id)+'/?email='+encodeURIComponent(o.email)));paintStage(fresh);}toast('Up to date · checked '+timeNow());}
-  catch(e){toast(e.message);}finally{btn.disabled=false;btn.textContent=t;}
+  try{await refreshOrder(false);toast('Up to date · checked '+timeNow());}
+  catch(e){toast(e.message);}
+  finally{btn.disabled=false;btn.textContent=t;}
 }
 function showNotifyDone(addr){$('notify-addr').textContent=addr;$('notify-form').hidden=true;$('notify-done').hidden=false;}
 async function notifyMe(){
   const v=$('notify-email').value.trim();
   if(!validEmail(v)){setErr('notify','Enter a valid email address.');$('notify-email').focus();return;}
-  setErr('notify',''); const o=findOrder(currentOrder);
-  try{if(!o.demo)await api('/api/orders/'+encodeURIComponent(o.id)+'/notification/',{method:'PATCH',body:JSON.stringify({email:o.email,notification_email:v})});o.notify=v;if(!o.demo)saveOrders();showNotifyDone(v);}
-  catch(e){setErr('notify',e.message);}
+  setErr('notify',''); const o=findOrder(currentOrder), btn=$('notify-btn'); btn.disabled=true; btn.textContent='Saving…';
+  try{
+    if(!o.demo) await api('/api/orders/'+encodeURIComponent(o.id)+'/notification/',{method:'PATCH',body:JSON.stringify({email:o.email,notification_email:v})});
+    o.notify=v; if(!o.demo) saveOrders(); showNotifyDone(v);
+  }catch(e){setErr('notify',e.message);}
+  finally{btn.disabled=false;btn.textContent='Notify me';}
 }
-async function changeNotify(){const o=findOrder(currentOrder);try{if(!o.demo)await api('/api/orders/'+encodeURIComponent(o.id)+'/notification/',{method:'PATCH',body:JSON.stringify({email:o.email,notification_email:''})});o.notify=null;if(!o.demo)saveOrders();$('notify-form').hidden=false;$('notify-done').hidden=true;$('notify-email').focus();}catch(e){toast(e.message);}}
+async function changeNotify(){
+  const o=findOrder(currentOrder);
+  try{
+    if(!o.demo) await api('/api/orders/'+encodeURIComponent(o.id)+'/notification/',{method:'PATCH',body:JSON.stringify({email:o.email,notification_email:''})});
+    o.notify=null; if(!o.demo) saveOrders(); $('notify-form').hidden=false; $('notify-done').hidden=true; $('notify-email').focus();
+  }catch(e){toast(e.message);}
+}
 
 // ═══ KEYBOARD: let Enter/Space activate role="button" and role="radio" elements ═══
 document.addEventListener('keydown',e=>{
