@@ -21,8 +21,8 @@
 # Team Members of the project
 * Keyan Moiny
 * Armando Cuandros
-* Mher Bizek
-* Harutiyan Dolmandjian
+* Mher Bezik
+* Harut Dolmadjian
 * Vandan Patel
 
 # Project Status
