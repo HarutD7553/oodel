@@ -95,7 +95,7 @@ def staff_order(order):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def create_order(request):
-    serializer = OrderCreateSerializer(data=request.data)
+    serializer = OrderCreateSerializer(data=request.data, context={'request': request})
     serializer.is_valid(raise_exception=True)
     order = serializer.save()
     return Response(customer_order(order), status=status.HTTP_201_CREATED)
@@ -112,11 +112,10 @@ def retrieve_order(request, public_id):
 
 
 @api_view(['PATCH'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def update_notification(request, public_id):
-    email = request.data.get('email', '').strip()
     notification_email = request.data.get('notification_email', '').strip()
-    order = get_object_or_404(Order, public_id=public_id, email__iexact=email)
+    order = get_object_or_404(Order, public_id=public_id, email__iexact=request.user.email)
     if notification_email:
         try:
             validate_email(notification_email)
