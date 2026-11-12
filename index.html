@@ -355,6 +355,14 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--pistachio)
 .notify-done{display:flex;gap:12px;align-items:flex-start;font-size:14px;color:var(--ink);line-height:1.5}
 .notify-done .ok{width:24px;height:24px;border-radius:50%;background:var(--forest);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
 .link-btn{background:none;border:none;color:var(--forest);font-weight:600;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;padding:0;margin-top:6px}
+.nav-session{border:1px solid var(--line);background:var(--white);color:var(--forest);border-radius:999px;padding:8px 12px;font:600 12px 'Inter',sans-serif;cursor:pointer;white-space:nowrap}
+.auth-shell{max-width:420px;margin:0 auto;padding:28px 20px 48px}
+.auth-card{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:22px;box-shadow:0 12px 35px rgba(40,25,35,.07)}
+.auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--cream);padding:4px;border-radius:12px;margin-bottom:22px}
+.auth-tab{border:0;background:transparent;border-radius:9px;padding:10px;font:600 13px 'Inter',sans-serif;color:var(--muted);cursor:pointer}
+.auth-tab.active{background:var(--white);color:var(--forest);box-shadow:0 2px 8px rgba(40,25,35,.08)}
+.access-banner{background:#F1F7F3;border:1px solid #CFE0D5;border-radius:var(--radius-sm);padding:12px 14px;color:var(--forest);font-size:12px;line-height:1.5;margin-bottom:18px}
+.access-banner strong{font-weight:700}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
@@ -364,10 +372,39 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--pistachio)
     <div class="nav-logo"><svg viewBox="0 0 24 24" fill="none" stroke="#FFFDF8" stroke-width="2.5"><path d="M12 2L2 19h20L12 2z"/><circle cx="12" cy="8" r="1.5" fill="#C0335E" stroke="none"/></svg></div>
     <span class="nav-wordmark">Oodel<span>.</span></span>
   </a>
-  <div class="nav-actions"><button class="cart-btn" onclick="goTo(3)" aria-label="Open cart">🛒<span id="cart-badge" class="cart-badge" style="display:none">0</span></button></div>
+  <div class="nav-actions"><button id="nav-session" class="nav-session" onclick="handleNavSession()">Sign in</button><button id="nav-cart" class="cart-btn" onclick="goTo(3)" aria-label="Open cart">🛒<span id="cart-badge" class="cart-badge" style="display:none">0</span></button></div>
 </nav>
 
 <main id="app">
+
+<!-- AUTHENTICATION / GUEST ACCESS -->
+<div class="screen" id="screen-auth">
+  <div class="auth-shell">
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="width:64px;height:64px;border-radius:50%;background:var(--forest);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFDF8" stroke-width="2.5"><path d="M12 2L2 19h20L12 2z"/><circle cx="12" cy="8" r="1.5" fill="#C0335E" stroke="none"/></svg>
+      </div>
+      <h1 class="display" id="auth-heading">Welcome back</h1>
+      <div class="subtitle" id="auth-subtitle" style="margin-bottom:0">Sign in to place and manage your bakery orders.</div>
+    </div>
+    <div class="auth-card">
+      <div class="auth-tabs" role="tablist" aria-label="Account access">
+        <button type="button" class="auth-tab active" id="auth-tab-login" role="tab" aria-selected="true" onclick="showAuthMode('login')">Sign in</button>
+        <button type="button" class="auth-tab" id="auth-tab-register" role="tab" aria-selected="false" onclick="showAuthMode('register')">Create account</button>
+      </div>
+      <div class="error-box" id="auth-error" role="alert" hidden><span>⚠️</span><span id="auth-error-text"></span></div>
+      <form onsubmit="handleAuthSubmit(event)" novalidate>
+        <div class="field" id="f-auth-username"><label class="label" for="auth-username">Username</label><input class="input" id="auth-username" autocomplete="username" maxlength="150" required><div class="field-error" id="err-auth-username" role="alert"></div></div>
+        <div class="field" id="f-auth-email" hidden><label class="label" for="auth-email">Email address</label><input class="input" type="email" id="auth-email" autocomplete="email" required><div class="field-error" id="err-auth-email" role="alert"></div></div>
+        <div class="field" id="f-auth-password"><label class="label" for="auth-password">Password</label><input class="input" type="password" id="auth-password" autocomplete="current-password" required><div class="hint" id="auth-password-hint" hidden>Use at least 8 characters and avoid common or all-numeric passwords.</div><div class="field-error" id="err-auth-password" role="alert"></div></div>
+        <button class="btn btn-primary" id="auth-submit" type="submit">Sign in</button>
+      </form>
+      <div class="divider">or</div>
+      <button class="btn btn-secondary" type="button" onclick="continueAsGuest()">Continue as guest</button>
+      <div class="hint" style="text-align:center;margin-top:14px">Guests can browse, check out, and track orders. Sign in to keep your account details available across visits.</div>
+    </div>
+  </div>
+</div>
 
 <!-- 0 · WELCOME / ORDER LOOKUP -->
 <div class="screen active" id="screen-0">
@@ -393,6 +430,7 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--pistachio)
 <div class="screen" id="screen-1">
   <div class="page">
     <h1 class="display" style="margin-bottom:20px">Our Menu</h1>
+    <div class="access-banner" id="menu-access"></div>
     <div class="search-bar">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7A6E77" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
       <input type="search" id="menu-search" placeholder="Search cakes, pastries…" aria-label="Search the menu" oninput="applyFilters()" autocomplete="off">
@@ -447,6 +485,7 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--pistachio)
     <button class="back-btn" onclick="goTo(1)">← Back to menu</button>
     <h1 class="display">Checkout</h1>
     <div class="subtitle">Review your order and choose how to pay.</div>
+    <div class="access-banner" id="checkout-access"></div>
 
     <div id="co-empty" class="co-empty" style="display:none">
       <div style="font-size:44px;margin-bottom:12px">🛒</div>
@@ -571,10 +610,22 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--pistachio)
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
 'use strict';
+const authStore={
+  get(key,fallback){try{const value=localStorage.getItem('oodel_auth_'+key);return value===null?fallback:JSON.parse(value);}catch(e){return fallback;}},
+  set(key,value){try{localStorage.setItem('oodel_auth_'+key,JSON.stringify(value));}catch(e){}},
+  del(key){try{localStorage.removeItem('oodel_auth_'+key);}catch(e){}}
+};
+let auth={
+  token:authStore.get('token',''),
+  user:authStore.get('user',null),
+  guest:authStore.get('guest',false),
+};
+let authReady=false, authMode='login', pendingAuthRoute='';
 const configuredApi=document.querySelector('meta[name="oodel-api-url"]')?.content||'';
 const API_BASE=(configuredApi.startsWith('__')?'http://127.0.0.1:8000':configuredApi).replace(/\/$/,'');
 async function api(path,options={}){
-  const response=await fetch(API_BASE+path,{headers:{'Content-Type':'application/json',...(options.headers||{})},...options});
+  const tokenHeader=auth.token?{Authorization:'Token '+auth.token}:{};
+  const response=await fetch(API_BASE+path,{headers:{'Content-Type':'application/json',...tokenHeader,...(options.headers||{})},...options});
   let data={}; try{data=await response.json();}catch(e){}
   if(!response.ok){
     const first=Object.values(data).flat().find(Boolean);
@@ -618,6 +669,93 @@ function focusFirstError(){
 let toastT;
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600);}
 
+// ═══ CUSTOMER AUTHENTICATION / GUEST ACCESS ═══
+function persistAuth(){
+  if(auth.token)authStore.set('token',auth.token);else authStore.del('token');
+  if(auth.user)authStore.set('user',auth.user);else authStore.del('user');
+  authStore.set('guest',!!auth.guest);
+}
+function clearAuth(){auth={token:'',user:null,guest:false};persistAuth();}
+function updateSessionUi(){
+  const session=$('nav-session');
+  session.textContent=auth.user?auth.user.username+' · Sign out':auth.guest?'Guest · Sign in':'Sign in';
+  session.setAttribute('aria-label',auth.user?'Sign out '+auth.user.username:auth.guest?'Sign in or create an account':'Sign in');
+  const menu=$('menu-access'),checkout=$('checkout-access');
+  if(auth.user){
+    const text='Signed in as '+auth.user.username+'. Your account email will be used for new orders.';
+    menu.innerHTML='<strong>Account access</strong> · '+esc(text);
+    checkout.innerHTML='<strong>Ready to order</strong> · '+esc(text);
+  }else{
+    const text='You are browsing as a guest. You can check out using the contact details you enter.';
+    menu.innerHTML='<strong>Guest access</strong> · '+esc(text);
+    checkout.innerHTML='<strong>Guest checkout</strong> · '+esc(text);
+  }
+}
+function showAuthMode(mode){
+  authMode=mode;
+  const registering=mode==='register';
+  $('auth-tab-login').classList.toggle('active',!registering);
+  $('auth-tab-register').classList.toggle('active',registering);
+  $('auth-tab-login').setAttribute('aria-selected',String(!registering));
+  $('auth-tab-register').setAttribute('aria-selected',String(registering));
+  $('f-auth-email').hidden=!registering;
+  $('auth-email').required=registering;
+  $('auth-password').autocomplete=registering?'new-password':'current-password';
+  $('auth-password-hint').hidden=!registering;
+  $('auth-heading').textContent=registering?'Create your account':'Welcome back';
+  $('auth-subtitle').textContent=registering?'Create an account to place and manage bakery orders.':'Sign in to place and manage your bakery orders.';
+  $('auth-submit').textContent=registering?'Create account':'Sign in';
+  $('auth-error').hidden=true;
+  ['auth-username','auth-email','auth-password'].forEach(key=>setErr(key,''));
+}
+function showAuthError(message){$('auth-error-text').textContent=message;$('auth-error').hidden=false;}
+async function handleAuthSubmit(event){
+  event.preventDefault();
+  $('auth-error').hidden=true;
+  ['auth-username','auth-email','auth-password'].forEach(key=>setErr(key,''));
+  const username=$('auth-username').value.trim(),email=$('auth-email').value.trim(),password=$('auth-password').value;
+  let bad=false;
+  if(!username){setErr('auth-username','Enter your username.');bad=true;}
+  if(authMode==='register'&&!validEmail(email)){setErr('auth-email','Enter a valid email address.');bad=true;}
+  if(!password){setErr('auth-password','Enter your password.');bad=true;}
+  if(bad){focusFirstError();return;}
+  const button=$('auth-submit'),original=button.textContent;
+  button.disabled=true;button.textContent=authMode==='register'?'Creating account…':'Signing in…';
+  try{
+    const path=authMode==='register'?'/api/auth/register/':'/api/auth/login/';
+    const body=authMode==='register'?{username,email,password}:{username,password};
+    const data=await api(path,{method:'POST',body:JSON.stringify(body)});
+    auth={token:data.token,user:data.user,guest:false};persistAuth();updateSessionUi();
+    const destination=pendingAuthRoute||'#/';pendingAuthRoute='';
+    if(location.hash===destination)route();else location.hash=destination;
+    toast(authMode==='register'?'Account created':'Signed in');
+  }catch(error){showAuthError(error.message);}
+  finally{button.disabled=false;button.textContent=original;}
+}
+function beginSignIn(returnTo=location.hash||'#/'){
+  pendingAuthRoute=returnTo==='#/login'?'#/':returnTo;
+  showAuthMode('login');
+  if(location.hash==='#/login')route();else location.hash='#/login';
+}
+function continueAsGuest(){
+  auth={token:'',user:null,guest:true};persistAuth();updateSessionUi();
+  const destination=pendingAuthRoute||'#/';pendingAuthRoute='';
+  if(location.hash===destination)route();else location.hash=destination;
+}
+async function logout(){
+  try{if(auth.token)await api('/api/auth/logout/',{method:'POST'});}catch(e){}
+  clearAuth();authReady=true;pendingAuthRoute='';updateSessionUi();
+  location.hash='#/login';toast('Signed out');
+}
+function handleNavSession(){if(auth.user)logout();else beginSignIn();}
+async function initializeAuth(){
+  if(auth.token){
+    try{auth.user=await api('/api/auth/me/');auth.guest=false;persistAuth();}
+    catch(e){clearAuth();}
+  }
+  authReady=true;updateSessionUi();route();
+}
+
 // ═══ STATE (kept across refresh for this browser session) ═══
 let cart=store.get('cart',[]), orders=store.get('orders',[]);
 let currentOrder=store.get('current',null), lastOrderId=store.get('last',null);
@@ -627,18 +765,26 @@ const saveCart=()=>store.set('cart',cart), saveOrders=()=>store.set('orders',ord
 function cacheOrder(order){const i=orders.findIndex(o=>o.id===order.id);if(i>=0)orders[i]=order;else orders.push(order);saveOrders();return order;}
 
 // ═══ ROUTER — #/ · #/menu · #/item/:id · #/checkout · #/confirmation · #/track · anything else = 404 ═══
-const TITLES={0:'Oodel — Order fresh, pick up in Northridge',1:'Menu · Oodel',2:'Customize your order · Oodel',3:'Checkout · Oodel',4:'Order confirmed · Oodel',5:'Track your order · Oodel',6:'Page not found · Oodel'};
+const TITLES={auth:'Sign in · Oodel',0:'Oodel — Order fresh, pick up in Northridge',1:'Menu · Oodel',2:'Customize your order · Oodel',3:'Checkout · Oodel',4:'Order confirmed · Oodel',5:'Track your order · Oodel',6:'Page not found · Oodel'};
 function goTo(n){
   const h=n===0?'#/':n===1?'#/menu':(n===2&&cur)?'#/item/'+cur.id:n===3?'#/checkout':n===4?'#/confirmation':n===5?'#/track':'#/menu';
   if(location.hash===h) route(); else location.hash=h;
 }
 function show(n){
-  document.querySelectorAll('.screen').forEach((s,i)=>s.classList.toggle('active',i===n));
+  const id=n==='auth'?'screen-auth':'screen-'+n;
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===id));
   document.title=TITLES[n]; window.scrollTo(0,0);
-  const sc=$('screen-'+n); sc.setAttribute('tabindex','-1'); sc.focus({preventScroll:true});
+  $('nav-cart').hidden=n==='auth';
+  const sc=$(id); sc.setAttribute('tabindex','-1'); sc.focus({preventScroll:true});
 }
 function route(){
+  if(!authReady)return;
   const h=location.hash.replace(/^#/,'')||'/'; let m;
+  if(h==='/login'){
+    if(auth.user){location.replace('#/');return;}
+    return show('auth');
+  }
+  if(!auth.user&&!auth.guest){pendingAuthRoute='#'+h;location.replace('#/login');return;}
   if(h==='/') return show(0);
   if(h==='/menu') return show(1);
   if((m=h.match(/^\/item\/([a-z]+)$/))){
@@ -754,6 +900,7 @@ function totals(){const sub=cart.reduce((t,l)=>t+l.unit*l.qty,0);const tax=Math.
 function updateCartBadge(){const n=cart.reduce((t,l)=>t+l.qty,0),b=$('cart-badge');b.textContent=n;b.style.display=n?'flex':'none';}
 function renderCheckout(){
   updateCartBadge();
+  updateSessionUi();
   const empty=cart.length===0;
   $('co-empty').style.display=empty?'block':'none'; $('co-main').style.display=empty?'none':'block';
   if(empty) return;
@@ -765,6 +912,9 @@ function renderCheckout(){
     '<button class="cart-remove" onclick="cartRemove('+i+')">Remove</button></div></div>').join('');
   const t=totals();
   $('co-sub').textContent=money(t.sub); $('co-tax').textContent=money(t.tax); $('co-total').textContent=money(t.total);
+  const email=$('co-email');
+  if(auth.user?.email){email.value=auth.user.email;email.readOnly=true;}
+  else email.readOnly=false;
   updatePayLabel();
 }
 function updatePayLabel(){const t=totals();$('co-pay').textContent=(payMethod==='cash'?'Place order · ':'Pay ')+money(t.total);}
@@ -858,13 +1008,14 @@ async function refreshStatus(btn){
 }
 function showNotifyDone(addr){$('notify-addr').textContent=addr;$('notify-form').hidden=true;$('notify-done').hidden=false;}
 async function notifyMe(){
+  if(!auth.user){toast('Sign in to change order notifications.');beginSignIn('#/track');return;}
   const v=$('notify-email').value.trim();
   if(!validEmail(v)){setErr('notify','Enter a valid email address.');$('notify-email').focus();return;}
   setErr('notify',''); const o=findOrder(currentOrder);
-  try{if(!o.demo)await api('/api/orders/'+encodeURIComponent(o.id)+'/notification/',{method:'PATCH',body:JSON.stringify({email:o.email,notification_email:v})});o.notify=v;if(!o.demo)saveOrders();showNotifyDone(v);}
+  try{if(!o.demo)await api('/api/orders/'+encodeURIComponent(o.id)+'/notification/',{method:'PATCH',body:JSON.stringify({notification_email:v})});o.notify=v;if(!o.demo)saveOrders();showNotifyDone(v);}
   catch(e){setErr('notify',e.message);}
 }
-async function changeNotify(){const o=findOrder(currentOrder);try{if(!o.demo)await api('/api/orders/'+encodeURIComponent(o.id)+'/notification/',{method:'PATCH',body:JSON.stringify({email:o.email,notification_email:''})});o.notify=null;if(!o.demo)saveOrders();$('notify-form').hidden=false;$('notify-done').hidden=true;$('notify-email').focus();}catch(e){toast(e.message);}}
+async function changeNotify(){if(!auth.user){toast('Sign in to change order notifications.');beginSignIn('#/track');return;}const o=findOrder(currentOrder);try{if(!o.demo)await api('/api/orders/'+encodeURIComponent(o.id)+'/notification/',{method:'PATCH',body:JSON.stringify({notification_email:''})});o.notify=null;if(!o.demo)saveOrders();$('notify-form').hidden=false;$('notify-done').hidden=true;$('notify-email').focus();}catch(e){toast(e.message);}}
 
 // ═══ KEYBOARD: let Enter/Space activate role="button" and role="radio" elements ═══
 document.addEventListener('keydown',e=>{
@@ -873,7 +1024,7 @@ document.addEventListener('keydown',e=>{
 
 // ═══ START ═══
 (function init(){
-  const d=$('co-date'); d.min=todayStr(); buildTimes(); updateCartBadge(); route();
+  const d=$('co-date'); d.min=todayStr(); buildTimes(); updateCartBadge(); initializeAuth();
 })();
 </script>
 </body>

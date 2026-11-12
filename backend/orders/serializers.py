@@ -54,6 +54,12 @@ class OrderCreateSerializer(serializers.Serializer):
             raise serializers.ValidationError('Pickup time must be in the future.')
         return value
 
+    def validate(self, attrs):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated and request.user.email:
+            attrs['email'] = request.user.email
+        return attrs
+
     @transaction.atomic
     def create(self, validated_data):
         items = validated_data.pop('items')

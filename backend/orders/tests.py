@@ -4,6 +4,7 @@ from datetime import timedelta
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.utils import timezone
+from rest_framework.authtoken.models import Token
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -12,6 +13,13 @@ from .models import Order
 
 class OrderApiTests(APITestCase):
     def setUp(self):
+        self.customer = get_user_model().objects.create_user(
+            username='customer',
+            email='ada@example.com',
+            password='strong-test-password',
+        )
+        token = Token.objects.create(user=self.customer)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {token.key}')
         self.payload = {
             'name': 'Ada Baker',
             'email': 'ada@example.com',
@@ -39,6 +47,7 @@ class OrderApiTests(APITestCase):
         self.assertEqual(response.data['totals'], {'sub': 48.0, 'tax': 4.56, 'total': 52.56})
         self.assertEqual(Order.objects.count(), 1)
 
+        self.client.credentials()
         detail = self.client.get(
             reverse('order-detail', args=(response.data['id'],)),
             {'email': 'ADA@example.com'},
@@ -48,6 +57,7 @@ class OrderApiTests(APITestCase):
 
     def test_order_lookup_requires_the_matching_email(self):
         created = self.create_order().data
+        self.client.credentials()
 
         response = self.client.get(
             reverse('order-detail', args=(created['id'],)),
@@ -57,6 +67,7 @@ class OrderApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_local_frontend_origin_is_allowed_by_cors(self):
+        self.client.credentials()
         response = self.client.options(
             reverse('order-create'),
             HTTP_ORIGIN='http://localhost:5173',
@@ -64,6 +75,46 @@ class OrderApiTests(APITestCase):
         )
 
         self.assertEqual(response['access-control-allow-origin'], 'http://localhost:5173')
+
+    def test_guest_can_place_an_order(self):
+        self.client.credentials()
+
+        response = self.create_order()
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['email'], self.payload['email'])
+        self.assertEqual(Order.objects.count(), 1)
+
+    def test_authenticated_user_email_is_used_for_new_order(self):
+        self.payload['email'] = 'somebody-else@example.com'
+
+        response = self.create_order()
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['email'], self.customer.email)
+
+    def test_notification_changes_require_matching_authenticated_account(self):
+        created = self.create_order().data
+        response = self.client.patch(
+            reverse('order-notification', args=(created['id'],)),
+            {'notification_email': 'notify@example.com'},
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        other = get_user_model().objects.create_user(
+            username='other',
+            email='other@example.com',
+            password='strong-test-password',
+        )
+        other_token = Token.objects.create(user=other)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {other_token.key}')
+        forbidden = self.client.patch(
+            reverse('order-notification', args=(created['id'],)),
+            {'notification_email': 'other@example.com'},
+            format='json',
+        )
+        self.assertEqual(forbidden.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_server_rejects_client_supplied_prices_and_unknown_options(self):
         self.payload['items'][0]['detail'] = 'Gigantic · Strawberry'
