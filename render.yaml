@@ -1,0 +1,48 @@
+databases:
+  - name: oodel-db
+    plan: free
+    region: oregon
+    databaseName: oodel
+    user: oodel
+
+services:
+  - type: web
+    name: oodel-api
+    runtime: python
+    plan: free
+    region: oregon
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --no-input && python manage.py migrate && python manage.py ensure_baker
+    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+    healthCheckPath: /api/health/
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: oodel-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: PYTHON_VERSION
+        value: 3.14.3
+      - key: WEB_CONCURRENCY
+        value: "2"
+      - key: BAKER_USERNAME
+        value: baker
+      - key: BAKER_PASSWORD
+        sync: false
+
+  - type: web
+    name: oodel-web
+    runtime: static
+    buildCommand: cd frontend && npm ci && npm run build
+    staticPublishPath: ./frontend/dist
+    envVars:
+      - key: NODE_VERSION
+        value: 24.20.0
+      - key: VITE_API_HOST
+        fromService:
+          type: web
+          name: oodel-api
+          envVarKey: RENDER_EXTERNAL_HOSTNAME
