@@ -34,10 +34,21 @@ Status: In Development
 - `index.html` - customer ordering and order-tracking interface.
 - `baker.html` - authenticated bakery queue and production interface.
 - `frontend/` - static production build plus the preserved React/Vite starter for a future migration.
-- `backend/` - Django REST API, staff authentication, admin site, and order database models.
+- `backend/` - Django REST API, customer token authentication, staff authentication, admin site, and order database models.
 - `render.yaml` - Render Blueprint for the frontend, API, and PostgreSQL database.
 
 The production frontend build copies the three root HTML pages into `frontend/dist` and injects the API URL. The browser never sends or stores card information. Until a payment processor is integrated, checkout supports cash on pickup only.
+
+## Customer Access
+
+Customers can create an account, sign in, sign out, and resume a saved login after refreshing the page. Guest mode allows menu browsing, checkout, and existing-order tracking. Changing notification preferences requires an authenticated account. Django hashes all passwords; the frontend stores only the issued API token and the public user profile.
+
+Authentication endpoints:
+
+- `POST /api/auth/register/`
+- `POST /api/auth/login/`
+- `POST /api/auth/logout/`
+- `GET /api/auth/me/`
 
 ## Local Development
 
