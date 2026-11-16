@@ -50,6 +50,10 @@ Authentication endpoints:
 - `POST /api/auth/logout/`
 - `GET /api/auth/me/`
 
+## API Reference
+
+Endpoints, request/response shapes, status codes, and the shared error format are documented in [`backend/API.md`](backend/API.md).
+
 ## Local Development
 
 Prerequisites: Git, Node.js 24, and Python 3.14.

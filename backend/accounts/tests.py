@@ -37,7 +37,7 @@ class AccountApiTests(APITestCase):
         response = self.client.post(reverse('auth-register'), self.registration_payload(), format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('email', response.data)
+        self.assertIn('email', response.data['errors'])
 
     def test_weak_password_is_rejected(self):
         response = self.client.post(
@@ -47,7 +47,7 @@ class AccountApiTests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('password', response.data)
+        self.assertIn('password', response.data['errors'])
 
     def test_login_logout_and_invalid_credentials(self):
         user = get_user_model().objects.create_user(**self.registration_payload())
