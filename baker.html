@@ -384,6 +384,7 @@ a.sidebar-item{text-decoration:none}
   <div class="modal-card" id="modal-card"></div>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="api-errors.js"></script>
 <script>
 'use strict';
 const configuredApi=document.querySelector('meta[name="oodel-api-url"]')?.content||'';
@@ -403,7 +404,7 @@ function toast(m,ms=2600){const t=$('toast');t.textContent=m;t.classList.add('sh
 function hideToast(){clearTimeout(toastT);$('toast').classList.remove('show');}
 
 // ═══ API HELPER: auth header, friendly errors, timeout, and a "server is waking up" notice ═══
-class ApiError extends Error{constructor(message,kind,status){super(message);this.kind=kind;this.status=status;}}
+const {ApiError,fromResponse:apiErrorFromResponse}=OodelApiErrors;
 const authHeader=()=>({Authorization:'Basic '+store.get('auth','')});
 const isAuthError=e=>e&&(e.status===401||e.status===403);
 async function staffApi(path,{quiet,...options}={}){
@@ -420,7 +421,7 @@ async function staffApi(path,{quiet,...options}={}){
     clearTimeout(timeout); clearTimeout(wake); if(wakeShown) hideToast();
   }
   let data={}; try{data=await response.json();}catch(e){}
-  if(!response.ok) throw new ApiError(data.detail||'The server could not complete that request.','http',response.status);
+  if(!response.ok) throw apiErrorFromResponse(data,response.status);
   return data;
 }
 

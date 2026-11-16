@@ -1,4 +1,4 @@
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { copyFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -6,6 +6,7 @@ const frontendDir = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const repositoryRoot = resolve(frontendDir, '..')
 const outputDir = resolve(frontendDir, 'dist')
 const pages = ['index.html', 'baker.html', '404.html']
+const assets = ['api-errors.js']
 
 async function readLocalApiUrl() {
   try {
@@ -32,4 +33,8 @@ for (const page of pages) {
   )
 }
 
-console.log(`Built ${pages.length} Oodel pages in ${outputDir} (API: ${apiUrl})`)
+for (const asset of assets) {
+  await copyFile(resolve(repositoryRoot, asset), resolve(outputDir, asset))
+}
+
+console.log(`Built ${pages.length} Oodel pages and ${assets.length} shared asset in ${outputDir} (API: ${apiUrl})`)

@@ -609,6 +609,7 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--pistachio)
 </footer>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="api-errors.js"></script>
 <script>
 'use strict';
 const authStore={
@@ -626,7 +627,7 @@ const configuredApi=document.querySelector('meta[name="oodel-api-url"]')?.conten
 const API_BASE=(configuredApi.startsWith('__')?'http://127.0.0.1:8000':configuredApi).replace(/\/$/,'');
 const REQUEST_TIMEOUT_MS=70000, WAKE_NOTICE_MS=4000, TRACK_POLL_MS=15000;
 
-class ApiError extends Error{constructor(message,kind,status){super(message);this.kind=kind;this.status=status;}}
+const {ApiError,fromResponse:apiErrorFromResponse,fieldMessage:apiFieldMessage,itemMessages:apiItemMessages}=OodelApiErrors;
 async function api(path,{quiet,...options}={}){
   const controller=new AbortController();
   const timeout=setTimeout(()=>controller.abort(),REQUEST_TIMEOUT_MS);
@@ -643,8 +644,7 @@ async function api(path,{quiet,...options}={}){
   }
   let data={}; try{data=await response.json();}catch(e){}
   if(!response.ok){
-    const first=Object.values(data).flat().find(Boolean);
-    throw new ApiError(typeof first==='string'?first:(data.detail||'The server could not complete that request.'),'http',response.status);
+    throw apiErrorFromResponse(data,response.status);
   }
   return data;
 }
@@ -680,6 +680,15 @@ function setErr(key,msg){
 function focusFirstError(){
   const el=document.querySelector('.screen.active .has-error input, .screen.active .has-error select');
   if(el){el.scrollIntoView({block:'center',behavior:'smooth'});el.focus({preventScroll:true});}
+}
+function showApiFieldErrors(error,mapping){
+  let found=false;
+  Object.entries(mapping).forEach(([apiField,formField])=>{
+    const message=apiFieldMessage(error,apiField);
+    if(message){setErr(formField,message);found=true;}
+  });
+  if(found)focusFirstError();
+  return found;
 }
 let toastT;
 function toast(msg,ms=2600){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),ms);}
@@ -745,7 +754,10 @@ async function handleAuthSubmit(event){
     const destination=pendingAuthRoute||'#/';pendingAuthRoute='';
     if(location.hash===destination)route();else location.hash=destination;
     toast(authMode==='register'?'Account created':'Signed in');
-  }catch(error){showAuthError(error.message);}
+  }catch(error){
+    const hasFieldErrors=showApiFieldErrors(error,{username:'auth-username',email:'auth-email',password:'auth-password'});
+    showAuthError(hasFieldErrors?'Please correct the highlighted fields.':error.message);
+  }
   finally{button.disabled=false;button.textContent=original;}
 }
 function beginSignIn(returnTo=location.hash||'#/'){
@@ -985,7 +997,10 @@ async function placeOrder(){
     cart=[]; saveCart(); updateCartBadge(); paying=false; btn.disabled=false; goTo(4);
   }catch(error){
     paying=false;btn.disabled=false;updatePayLabel();
-    $('co-error-text').textContent=(error.message||'We couldn’t place the order.')+' Your cart is still saved.';
+    const hasFieldErrors=showApiFieldErrors(error,{name:'co-name',email:'co-email',phone:'co-phone',pickup_at:'co-time'});
+    const itemErrors=apiItemMessages(error,cart).map(item=>item.label+': '+item.message);
+    const message=itemErrors.length?itemErrors.join(' '):(hasFieldErrors?'Please correct the highlighted fields.':(error.message||'We couldn’t place the order.'));
+    $('co-error-text').textContent=message+' Your cart is still saved.';
     const box=$('co-error');box.style.display='flex';box.scrollIntoView({block:'center',behavior:'smooth'});
   }
 }
@@ -1052,7 +1067,7 @@ async function notifyMe(){
   if(!validEmail(v)){setErr('notify','Enter a valid email address.');$('notify-email').focus();return;}
   setErr('notify','');const o=findOrder(currentOrder),button=$('notify-btn');button.disabled=true;button.textContent='Saving…';
   try{if(!o.demo)await api('/api/orders/'+encodeURIComponent(o.id)+'/notification/',{method:'PATCH',body:JSON.stringify({notification_email:v})});o.notify=v;if(!o.demo)saveOrders();showNotifyDone(v);}
-  catch(error){setErr('notify',error.message);}
+  catch(error){setErr('notify',apiFieldMessage(error,'notification_email')||error.message);}
   finally{button.disabled=false;button.textContent='Notify me';}
 }
 async function changeNotify(){
