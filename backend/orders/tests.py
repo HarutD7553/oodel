@@ -155,6 +155,109 @@ class OrderApiTests(APITestCase):
         self.assertTrue(Order.objects.get().started_at)
 
 
+class ApiContractTests(APITestCase):
+    def setUp(self):
+        User = get_user_model()
+        User.objects.create_user(username='baker', password='strong-test-password', is_staff=True)
+        self.customer = User.objects.create_user(
+            username='customer', email='ada@example.com', password='strong-test-password',
+        )
+        self.staff_auth = 'Basic ' + base64.b64encode(b'baker:strong-test-password').decode('ascii')
+        self.customer_auth = f'Token {Token.objects.create(user=self.customer).key}'
+        self.payload = {
+            'name': 'Ada Baker',
+            'email': 'ada@example.com',
+            'pickup_at': (timezone.now() + timedelta(days=1)).isoformat(),
+            'payment': 'cash',
+            'items': [{'product_id': 'croissant', 'detail': 'Butter', 'quantity': 1}],
+        }
+
+    def place_order(self):
+        response = self.client.post(reverse('order-create'), self.payload, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        return response.data['id']
+
+    def test_validation_errors_use_the_shared_shape(self):
+        response = self.client.post(reverse('order-create'), {}, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIsInstance(response.data['detail'], str)
+        self.assertIn('email', response.data['errors'])
+
+    def test_not_found_uses_the_shared_shape(self):
+        response = self.client.get(reverse('order-detail', args=('CK-000000',)), {'email': 'a@b.com'})
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data['errors'], {})
+        self.assertIsInstance(response.data['detail'], str)
+
+    def test_missing_email_on_lookup_is_a_validation_error(self):
+        response = self.client.get(reverse('order-detail', args=('CK-000000',)))
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('email', response.data['errors'])
+
+    def test_invalid_notification_email_is_rejected(self):
+        order_id = self.place_order()
+        self.client.credentials(HTTP_AUTHORIZATION=self.customer_auth)
+
+        response = self.client.patch(
+            reverse('order-notification', args=(order_id,)),
+            {'notification_email': 'nope'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('notification_email', response.data['errors'])
+
+    def test_staff_can_read_then_delete_an_order(self):
+        order_id = self.place_order()
+        self.client.credentials(HTTP_AUTHORIZATION=self.staff_auth)
+        url = reverse('staff-order-detail', args=(order_id,))
+
+        self.assertEqual(self.client.get(url).data['id'], order_id)
+        self.assertEqual(self.client.delete(url).status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(Order.objects.count(), 0)
+        self.assertEqual(self.client.get(url).status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_only_staff_can_delete_orders(self):
+        order_id = self.place_order()
+        url = reverse('staff-order-detail', args=(order_id,))
+
+        self.assertEqual(self.client.delete(url).status_code, status.HTTP_401_UNAUTHORIZED)
+        self.client.credentials(HTTP_AUTHORIZATION=self.customer_auth)
+        self.assertEqual(self.client.delete(url).status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Order.objects.count(), 1)
+
+    def test_status_cannot_skip_a_step(self):
+        order_id = self.place_order()
+        self.client.credentials(HTTP_AUTHORIZATION=self.staff_auth)
+
+        response = self.client.patch(
+            reverse('staff-order-status', args=(order_id,)),
+            {'status': 'ready'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('status', response.data['errors'])
+        self.assertEqual(Order.objects.get().status, Order.Status.PLACED)
+
+    def test_product_details_must_match_supported_options(self):
+        invalid_details = (
+            ('croissant', 'Plain'),
+            ('strawberry', 'Medium · Pistachio'),
+            ('cupcake', 'Box of 6 · Chocolate'),
+        )
+        for product_id, detail in invalid_details:
+            with self.subTest(product_id=product_id, detail=detail):
+                self.payload['items'] = [{'product_id': product_id, 'detail': detail, 'quantity': 1}]
+                response = self.client.post(reverse('order-create'), self.payload, format='json')
+                self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+                self.assertIn('items', response.data['errors'])
+        self.assertEqual(Order.objects.count(), 0)
+
+
 @override_settings(DEBUG=True)
 class SeedDataCommandTests(TestCase):
     def run_seed(self, *args):

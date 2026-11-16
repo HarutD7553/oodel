@@ -10,7 +10,7 @@ Base URL: `VITE_API_HOST` in production, `http://127.0.0.1:8000` locally. All bo
 | Customer | `Authorization: Token <token>` (from `/api/auth/login/` or `/register/`) |
 | Staff (baker) | `Authorization: Basic <base64(username:password)>` |
 
-## Errors (same shape for every endpoint)
+## Handled API errors
 
 ```json
 { "detail": "Human-readable message to show the user", "errors": { "email": ["Enter a valid email address."] } }
@@ -44,7 +44,7 @@ Request:
   ]
 }
 ```
-Rules: `name`, `email`, `pickup_at`, `payment` (`"cash"` only), and `items` (at least 1) are required. `phone` and `note` are optional. `pickup_at` must be in the future. `quantity` is 1–20. `product_id` and the size/box option in `detail` (the text before ` · `) must exist in the menu. **Prices are set by the server**; any price sent is ignored. If the customer is signed in, their account email is used.
+Rules: `name`, `email`, `pickup_at`, `payment` (`"cash"` only), and `items` (at least 1) are required. `phone` and `note` are optional. `pickup_at` must be in the future. `quantity` is 1–20. `product_id`, cake size/flavor, cupcake box size, and pastry option must exist in the menu. **Prices are set by the server**; any price sent is ignored. If the customer is signed in, their account email is used.
 
 Response: an [Order](#order-object).
 
@@ -85,7 +85,7 @@ Status request: `{ "status": "baking" }`. Statuses move strictly in order: `plac
 ```json
 {
   "id": "CK-123456", "customer": "Ada Baker", "phone": "(818) 555-0100", "email": "ada@example.com",
-  "status": "baking", "placedAt": "9:15 AM", "pickup": "Dec 1 · 5:30 PM",
+  "status": "ready", "placedAt": "9:15 AM", "pickup": "Dec 1 · 5:30 PM",
   "startedAt": "10:02 AM", "readyAt": "11:10 AM",
   "items": [{ "qty": 2, "name": "Strawberry Cake", "detail": "Medium · Strawberry" }],
   "note": "Happy birthday", "total": 52.56, "pay": "Cash on pickup"
@@ -95,7 +95,7 @@ Status request: `{ "status": "baking" }`. Statuses move strictly in order: `plac
 
 ## Where the code lives
 
-- `orders/data.py` — all database reads and writes for orders
-- `orders/serializers.py` — request validation and server-side pricing
-- `orders/views.py` — the endpoints above
-- `config/exceptions.py` — builds the shared error shape
+- `backend/orders/data.py` — runtime database reads and writes for orders
+- `backend/orders/serializers.py` — request validation and server-side pricing
+- `backend/orders/views.py` — the endpoints above
+- `backend/config/exceptions.py` — builds the shared handled-error shape

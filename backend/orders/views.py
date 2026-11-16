@@ -1,14 +1,13 @@
-from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from django.core.exceptions import ValidationError as DjangoValidationError
-from django.core.validators import validate_email
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
+from . import data
 from .models import Order
-from .serializers import OrderCreateSerializer
+from .serializers import NotificationSerializer, OrderCreateSerializer
 
 
 STATUS_TO_STAGE = {
@@ -106,23 +105,17 @@ def create_order(request):
 def retrieve_order(request, public_id):
     email = request.query_params.get('email', '').strip()
     if not email:
-        return Response({'detail': 'Email is required.'}, status=status.HTTP_400_BAD_REQUEST)
-    order = get_object_or_404(Order.objects.prefetch_related('items'), public_id=public_id, email__iexact=email)
-    return Response(customer_order(order))
+        raise ValidationError({'email': 'Email is required.'})
+    return Response(customer_order(data.get_order(public_id, email=email)))
 
 
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 def update_notification(request, public_id):
-    notification_email = request.data.get('notification_email', '').strip()
-    order = get_object_or_404(Order, public_id=public_id, email__iexact=request.user.email)
-    if notification_email:
-        try:
-            validate_email(notification_email)
-        except DjangoValidationError:
-            return Response({'notification_email': ['Enter a valid email address.']}, status=status.HTTP_400_BAD_REQUEST)
-    order.notification_email = notification_email
-    order.save(update_fields=('notification_email',))
+    serializer = NotificationSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    order = data.get_order(public_id, email=request.user.email)
+    data.set_notification_email(order, serializer.validated_data['notification_email'])
     return Response({'notification_email': order.notification_email or None})
 
 
@@ -130,37 +123,33 @@ def update_notification(request, public_id):
 @permission_classes([IsAuthenticated])
 def staff_login(request):
     if not request.user.is_staff:
-        return Response({'detail': 'Staff access is required.'}, status=status.HTTP_403_FORBIDDEN)
+        raise PermissionDenied('Staff access is required.')
     return Response({'username': request.user.get_username()})
 
 
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 def staff_orders(request):
-    orders = Order.objects.exclude(status=Order.Status.DONE).prefetch_related('items')
-    return Response([staff_order(order) for order in orders])
+    return Response([staff_order(order) for order in data.list_active_orders()])
+
+
+@api_view(['GET', 'DELETE'])
+@permission_classes([IsAdminUser])
+def staff_order_detail(request, public_id):
+    order = data.get_order(public_id)
+    if request.method == 'DELETE':
+        data.delete_order(order)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    return Response(staff_order(order))
 
 
 @api_view(['PATCH'])
 @permission_classes([IsAdminUser])
 def update_order_status(request, public_id):
-    order = get_object_or_404(Order.objects.prefetch_related('items'), public_id=public_id)
-    requested = request.data.get('status')
+    order = data.get_order(public_id)
     expected = NEXT_STATUS.get(order.status)
-    if not expected or requested != expected:
-        return Response(
-            {'status': [f'Next status must be {expected!r}.']},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    order.status = requested
-    now = timezone.now()
-    fields = ['status']
-    if requested == Order.Status.BAKING:
-        order.started_at = now
-        fields.append('started_at')
-    elif requested == Order.Status.READY:
-        order.ready_at = now
-        fields.append('ready_at')
-    order.save(update_fields=fields)
-    return Response(staff_order(order))
+    if expected is None:
+        raise ValidationError({'status': 'This order has already been picked up.'})
+    if request.data.get('status') != expected:
+        raise ValidationError({'status': f'Next status must be {expected.value!r}.'})
+    return Response(staff_order(data.set_status(order, expected)))
