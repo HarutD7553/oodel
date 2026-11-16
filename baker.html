@@ -204,8 +204,11 @@ a.sidebar-item{text-decoration:none}
 .l-label{font-size:12px;font-weight:500;color:#888;display:block;margin-bottom:6px}
 .l-input{width:100%;height:46px;padding:0 14px;background:#111;border:1.5px solid #333;border-radius:10px;font-size:14px;font-family:'Inter',sans-serif;color:var(--cream);outline:none;transition:border-color .15s}
 .l-input:focus{border-color:var(--forest-light)}
-.l-btn{width:100%;height:48px;border-radius:999px;background:var(--forest);color:var(--cream);border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:background .15s}
+.l-btn{width:100%;height:48px;border-radius:999px;background:var(--forest);color:var(--cream);border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:background .15s;display:flex;align-items:center;justify-content:center;gap:10px}
 .l-btn:hover{background:var(--forest-light)}
+.l-btn:disabled{cursor:wait;opacity:.9}
+.l-btn.is-loading::before{content:'';width:16px;height:16px;border:2px solid rgba(255,253,248,.4);border-top-color:var(--cream);border-radius:50%;animation:kitchen-spin .7s linear infinite}
+@keyframes kitchen-spin{to{transform:rotate(360deg)}}
 .login-err{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:10px 14px;font-size:13px;color:#F87171;margin-bottom:16px}
 .pw-wrap{position:relative}
 .pw-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#888;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;padding:6px}
@@ -579,7 +582,7 @@ async function handleBakerLogin(e){
   e.preventDefault();
   const u=$('baker-username').value.trim(), p=$('baker-password').value;
   if(!u||!p){showLoginErr('Enter your username and password.');return false;}
-  const btn=$('login-btn'); btn.disabled=true; btn.textContent='Signing in…'; $('login-error').hidden=true;
+  const btn=$('login-btn'); btn.disabled=true; btn.classList.add('is-loading'); btn.textContent='Signing in…'; $('login-error').hidden=true;
   store.set('auth',btoa(unescape(encodeURIComponent(u+':'+p))));
   try{
     await staffApi('/api/staff/login/',{method:'POST'});
@@ -588,7 +591,7 @@ async function handleBakerLogin(e){
   }catch(err){
     store.del('auth');
     showLoginErr(isAuthError(err)?'Invalid username or password. Please try again.':err.message);
-  }finally{btn.disabled=false;btn.textContent='Sign in to Kitchen Portal';}
+  }finally{btn.disabled=false;btn.classList.remove('is-loading');btn.textContent='Sign in to Kitchen Portal';}
   return false;
 }
 function handleSignOut(){
