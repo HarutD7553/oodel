@@ -86,6 +86,35 @@ npm run dev
 
 The local frontend runs at `http://localhost:5173`. `npm run build` builds the production static prototype. Use `npm run dev:react` or `npm run build:react` only when working on the preserved React starter.
 
+### Representative Development Data
+
+With `DEBUG=True` in `backend/.env`, create or reset the demo dataset with:
+
+```bash
+cd backend
+python manage.py seed_dev_data --reset
+```
+
+The command creates two demo customers plus five orders covering placed, baking, ready, and picked-up states. It is safe to run repeatedly. Reset removes only the five known demo order IDs; it does not delete normal orders with similar IDs.
+
+The current data relationships are:
+
+- `Order` to `OrderItem`: one-to-many through the `items` related name.
+- Customer account to order: matched by email until a direct customer foreign key is added.
+
+Demo customer accounts have unusable passwords by default. To demonstrate customer sign-in, set `SEED_DEMO_PASSWORD` in your local environment before running the command. Never commit that password. When `DEBUG=False`, the command refuses to run unless `--allow-production` is supplied for an intentional demo environment.
+
+### Vertical-Slice Demo
+
+1. Start the backend and frontend using the local-development commands above.
+2. Run `python manage.py seed_dev_data --reset`.
+3. On the customer site, continue as a guest and track `CK-900001` with `demo.customer@example.com`.
+4. Open `baker.html#/login`, sign in with the configured baker credentials, and show the seeded queue across placed, baking, and ready states.
+5. Move an order to its next status in the kitchen portal.
+6. Return to customer tracking and refresh the status to show the end-to-end update.
+
+See `BACKLOG.md` for completed vertical-slice work and the next integration priorities.
+
 ### Checks
 
 ```bash

@@ -1,7 +1,11 @@
 import base64
 from datetime import timedelta
+from io import StringIO
 
 from django.contrib.auth import get_user_model
+from django.core.management import call_command
+from django.core.management.base import CommandError
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
@@ -149,3 +153,74 @@ class OrderApiTests(APITestCase):
         self.assertEqual(updated.status_code, status.HTTP_200_OK)
         self.assertEqual(updated.data['status'], 'baking')
         self.assertTrue(Order.objects.get().started_at)
+
+
+@override_settings(DEBUG=True)
+class SeedDataCommandTests(TestCase):
+    def run_seed(self, *args):
+        output = StringIO()
+        call_command('seed_dev_data', *args, stdout=output)
+        return output.getvalue()
+
+    def test_seed_data_is_representative_idempotent_and_related(self):
+        first_output = self.run_seed()
+        second_output = self.run_seed()
+
+        self.assertIn('5 new orders', first_output)
+        self.assertIn('0 new orders', second_output)
+        self.assertEqual(Order.objects.filter(public_id__in=[f'CK-90000{i}' for i in range(1, 6)]).count(), 5)
+        self.assertSetEqual(
+            set(Order.objects.values_list('status', flat=True)),
+            {Order.Status.PLACED, Order.Status.BAKING, Order.Status.READY, Order.Status.DONE},
+        )
+
+        baking = Order.objects.get(public_id='CK-900002')
+        self.assertEqual(baking.items.count(), 2)
+        self.assertEqual(
+            set(baking.items.values_list('detail', flat=True)),
+            {'Box of 6', 'Butter'},
+        )
+        self.assertLess(baking.placed_at, baking.started_at)
+        self.assertLess(baking.started_at, baking.pickup_at)
+
+        customer = get_user_model().objects.get(username='demo_customer')
+        self.assertFalse(customer.has_usable_password())
+        self.assertTrue(Order.objects.filter(email__iexact=customer.email).exists())
+
+    def test_reset_does_not_delete_normal_orders_with_similar_ids(self):
+        self.run_seed()
+        normal_order = Order.objects.create(
+            public_id='CK-999999',
+            customer_name='Real Customer',
+            email='real.customer@example.com',
+            pickup_at=timezone.now() + timedelta(days=1),
+            subtotal='10.00',
+            tax='0.95',
+            total='10.95',
+        )
+
+        self.run_seed('--reset')
+
+        self.assertTrue(Order.objects.filter(pk=normal_order.pk).exists())
+        self.assertEqual(Order.objects.filter(public_id__in=[f'CK-90000{i}' for i in range(1, 6)]).count(), 5)
+
+    def test_reset_refuses_to_delete_an_order_that_collides_with_a_seed_id(self):
+        normal_order = Order.objects.create(
+            public_id='CK-900001',
+            customer_name='Real Customer',
+            email='real.customer@example.com',
+            pickup_at=timezone.now() + timedelta(days=1),
+            subtotal='10.00',
+            tax='0.95',
+            total='10.95',
+        )
+
+        with self.assertRaises(CommandError):
+            self.run_seed('--reset')
+
+        self.assertTrue(Order.objects.filter(pk=normal_order.pk).exists())
+
+    @override_settings(DEBUG=False)
+    def test_seed_requires_explicit_acknowledgement_when_debug_is_off(self):
+        with self.assertRaises(CommandError):
+            self.run_seed()
