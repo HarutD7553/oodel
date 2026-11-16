@@ -239,6 +239,8 @@ a.sidebar-item{text-decoration:none}
   .nav{padding:0 14px}
 }
 @media(max-width:560px){.nav-badge{display:none}}
+.link-refresh{background:none;border:none;color:#9ad1b0;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;padding:0 0 0 6px}
+.link-refresh:hover{text-decoration:underline}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -269,7 +271,7 @@ a.sidebar-item{text-decoration:none}
           <button type="button" class="pw-toggle" id="pw-toggle" onclick="togglePw()" aria-label="Show password">Show</button>
         </div>
       </div>
-      <button type="submit" class="l-btn">Sign in to Kitchen Portal</button>
+      <button type="submit" class="l-btn" id="login-btn">Sign in to Kitchen Portal</button>
       <div style="text-align:center;margin-top:14px;font-size:12px;color:#555">🔒 Staff access only</div>
     </form>
     <div style="text-align:center;margin-top:18px;font-size:12px;color:#555;line-height:1.7">
@@ -313,7 +315,7 @@ a.sidebar-item{text-decoration:none}
 
       <!-- QUEUE -->
       <section id="view-queue" hidden>
-        <div class="page-header"><h1 class="page-title">Orders Queue</h1><div class="page-sub" id="current-time"></div></div>
+        <div class="page-header"><h1 class="page-title">Orders Queue</h1><div class="page-sub" id="current-time"></div><div class="page-sub"><span id="last-updated">Loading…</span> <button class="link-refresh" onclick="loadOrders(true)">↻ Refresh</button></div></div>
         <div class="stats-row">
           <div class="stat-card blue"><div class="stat-num" id="st-placed">0</div><div class="stat-label">Placed · waiting</div></div>
           <div class="stat-card amber"><div class="stat-num" id="st-baking">0</div><div class="stat-label">Currently baking</div></div>
@@ -359,6 +361,7 @@ a.sidebar-item{text-decoration:none}
             <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:#888" id="clock-l2">Elapsed</span><span style="color:var(--butter);font-weight:600" id="clock-v2">—</span></div>
           </div>
           <button class="clock-btn" id="clock-btn" onclick="clockToggle()">Clock out</button>
+          <div style="font-size:12px;color:#666;margin-top:12px">Shift times are saved in this browser only.</div>
         </div>
       </section>
 
@@ -385,53 +388,78 @@ a.sidebar-item{text-decoration:none}
 'use strict';
 const configuredApi=document.querySelector('meta[name="oodel-api-url"]')?.content||'';
 const API_BASE=(configuredApi.startsWith('__')?'http://127.0.0.1:8000':configuredApi).replace(/\/$/,'');
+const REQUEST_TIMEOUT_MS=70000, WAKE_NOTICE_MS=4000, REFRESH_MS=20000;
 const $=id=>document.getElementById(id);
-const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const timeNow=()=>new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-const money=n=>'$'+n.toFixed(2);
+const money=n=>'$'+Number(n||0).toFixed(2);
 const store={
   get(k,d){try{const v=sessionStorage.getItem('oodel_baker_'+k);return v?JSON.parse(v):d;}catch(e){return d;}},
   set(k,v){try{sessionStorage.setItem('oodel_baker_'+k,JSON.stringify(v));}catch(e){}},
   del(k){try{sessionStorage.removeItem('oodel_baker_'+k);}catch(e){}}
 };
-let toastT; function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600);}
+let toastT;
+function toast(m,ms=2600){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),ms);}
+function hideToast(){clearTimeout(toastT);$('toast').classList.remove('show');}
 
-// ═══ ORDERS — demo data. Harut's GET /api/orders and PATCH /api/orders/:id/status will replace this ═══
-const SEED=[
- {id:'CK-2481',customer:'Sarah Johnson',phone:'(818) 555-0142',email:'sarah.j@example.com',status:'placed',placedAt:'9:42 AM',pickup:'11:30 AM',timer:{level:'urgent',text:'⚡ 45 min to pickup'},items:[{qty:1,name:'Strawberry Cake',detail:'Medium · Strawberry'},{qty:1,name:'Vanilla Cupcake',detail:'Box of 4'}],note:'“Happy Birthday Sarah!” on the cake.',allergens:[{icon:'🥜',label:'Nuts',text:'must be completely avoided. Cross-contamination risk.'}],total:38,pay:'Paid online'},
- {id:'CK-2482',customer:'Michael Chen',phone:'(818) 555-0177',email:'m.chen@example.com',status:'placed',placedAt:'9:55 AM',pickup:'12:00 PM',timer:{level:'soon',text:'⏱ 2h to pickup'},items:[{qty:1,name:'Chocolate Cake',detail:'Large · Chocolate'}],note:'',allergens:[],total:28,pay:'Paid online'},
- {id:'CK-2483',customer:'Emily Rodriguez',phone:'(818) 555-0108',email:'emily.r@example.com',status:'placed',placedAt:'10:10 AM',pickup:'1:00 PM',timer:{level:'ok',text:'✓ 3h to pickup'},items:[{qty:1,name:'Red Velvet Cake',detail:'Medium · Red Velvet'},{qty:3,name:'Croissant',detail:'Butter'}],note:'Extra frosting please. Dairy-free frosting only.',allergens:[{icon:'🥛',label:'Dairy-free',text:'request. No butter or cream in the frosting.'}],total:44,pay:'Cash on pickup'},
- {id:'CK-2479',customer:'David Kim',phone:'(818) 555-0163',email:'d.kim@example.com',status:'baking',placedAt:'9:20 AM',startedAt:'9:30 AM',pickup:'11:00 AM',timer:{level:'urgent',text:'⚡ 30 min to pickup'},items:[{qty:1,name:'Vanilla Cupcake',detail:'Box of 6'}],note:'',allergens:[],total:20,pay:'Paid online'},
- {id:'CK-2480',customer:'Lisa Park',phone:'(818) 555-0191',email:'lisa.p@example.com',status:'baking',placedAt:'9:40 AM',startedAt:'9:50 AM',pickup:'11:45 AM',timer:{level:'soon',text:'⏱ 1h to pickup'},items:[{qty:1,name:'Strawberry Cake',detail:'Small · Strawberry'}],note:'“Congratulations!” written on top.',allergens:[{icon:'🌾',label:'Gluten-free',text:'request. Use dedicated gluten-free equipment only.'}],total:18,pay:'Paid online'},
- {id:'CK-2478',customer:'Tom Wilson',phone:'(818) 555-0125',email:'tom.w@example.com',status:'ready',placedAt:'8:30 AM',startedAt:'8:40 AM',readyAt:'9:15 AM',pickup:'10:00 AM',timer:null,items:[{qty:1,name:'Chocolate Cake',detail:'Medium · Chocolate'}],note:'',allergens:[],total:22,pay:'Paid online'}
-];
+// ═══ API HELPER: auth header, friendly errors, timeout, and a "server is waking up" notice ═══
+class ApiError extends Error{constructor(message,kind,status){super(message);this.kind=kind;this.status=status;}}
+const authHeader=()=>({Authorization:'Basic '+store.get('auth','')});
+const isAuthError=e=>e&&(e.status===401||e.status===403);
+async function staffApi(path,{quiet,...options}={}){
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),REQUEST_TIMEOUT_MS);
+  let wakeShown=false;
+  const wake=quiet?null:setTimeout(()=>{wakeShown=true;toast('The server is waking up. This can take up to a minute…',9000);},WAKE_NOTICE_MS);
+  let response;
+  try{
+    response=await fetch(API_BASE+path,{...options,headers:{'Content-Type':'application/json',...authHeader(),...(options.headers||{})},signal:controller.signal});
+  }catch(e){
+    throw new ApiError(e.name==='AbortError'?'The server took too long to answer. Please try again in a moment.':'We couldn’t reach the server. Check your connection and try again.','network');
+  }finally{
+    clearTimeout(timeout); clearTimeout(wake); if(wakeShown) hideToast();
+  }
+  let data={}; try{data=await response.json();}catch(e){}
+  if(!response.ok) throw new ApiError(data.detail||'The server could not complete that request.','http',response.status);
+  return data;
+}
+
+// ═══ ORDERS (loaded from the API) ═══
 let ORDERS=store.get('orders',[]), qFilter='all', lastFocus=null;
+let loadState=ORDERS.length?'ready':'idle', loadError='', loadingNow=false, pollT=null;
+const BUSY=new Set();
 const saveOrders=()=>store.set('orders',ORDERS);
 const NEXT={placed:'baking',baking:'ready',ready:'done'};
 const ACTION={placed:['🔥 Start baking','action-btn-primary'],baking:['✅ Mark as ready','action-btn-ready'],ready:['📦 Mark as picked up','action-btn-primary']};
 const BADGE={placed:'Placed',baking:'Baking',ready:'Ready'};
 
 function cardHtml(o){
-  const st=o.status;
-  const when=st==='placed'?'Placed at '+o.placedAt:st==='baking'?'Baking since '+o.startedAt:'Ready since '+o.readyAt;
-  const timer=(st!=='ready'&&o.timer)?' <span class="pickup-timer '+o.timer.level+'">'+o.timer.text+'</span>':'';
-  let h='<article class="order-card'+(o.timer&&o.timer.level==='urgent'&&st!=='ready'?' priority':'')+'" data-status="'+st+'">';
-  h+='<div class="order-top"><div><div class="order-id">'+o.id+timer+'</div><div class="order-customer">'+esc(o.customer)+'</div><div class="order-time">'+when+' · Pickup '+o.pickup+'</div></div><div class="status-badge status-'+st+'">'+BADGE[st]+'</div></div>';
-  h+='<div class="order-items">'+o.items.map(i=>'<div class="order-item-tag"><strong>'+i.qty+'×</strong> '+esc(i.name)+' ('+esc(i.detail)+')</div>').join('')+'</div>';
-  o.allergens.forEach(a=>{h+='<div class="allergen-alert" role="alert">⚠️ <strong>ALLERGEN ALERT</strong> — <span class="allergen-badge">'+a.icon+' '+esc(a.label)+'</span> '+esc(a.text)+'</div>';});
+  const st=o.status, busy=BUSY.has(o.id);
+  const when=st==='placed'?'Placed at '+(o.placedAt||'—'):st==='baking'?'Baking since '+(o.startedAt||'earlier'):'Ready since '+(o.readyAt||'earlier');
+  const timer=(st!=='ready'&&o.timer)?' <span class="pickup-timer '+esc(o.timer.level)+'">'+esc(o.timer.text)+'</span>':'';
+  let h='<article class="order-card'+(o.timer&&o.timer.level==='urgent'&&st!=='ready'?' priority':'')+'" data-status="'+esc(st)+'">';
+  h+='<div class="order-top"><div><div class="order-id">'+esc(o.id)+timer+'</div><div class="order-customer">'+esc(o.customer)+'</div><div class="order-time">'+when+' · Pickup '+esc(o.pickup)+'</div></div><div class="status-badge status-'+esc(st)+'">'+(BADGE[st]||esc(st))+'</div></div>';
+  h+='<div class="order-items">'+(o.items||[]).map(i=>'<div class="order-item-tag"><strong>'+esc(i.qty)+'×</strong> '+esc(i.name)+' ('+esc(i.detail)+')</div>').join('')+'</div>';
+  (o.allergens||[]).forEach(a=>{h+='<div class="allergen-alert" role="alert">⚠️ <strong>ALLERGEN ALERT</strong> — <span class="allergen-badge">'+esc(a.icon)+' '+esc(a.label)+'</span> '+esc(a.text)+'</div>';});
   if(o.note) h+='<div class="order-note"><strong>📝 Special instructions</strong>'+esc(o.note)+'</div>';
-  h+='<div class="order-meta"><div class="order-meta-item">💰 <strong>'+money(o.total)+'</strong></div><div class="order-meta-item">📍 <strong>Northridge</strong></div><div class="order-meta-item">💳 <strong>'+o.pay+'</strong></div></div>';
-  h+='<div class="order-actions"><button class="action-btn action-btn-secondary" onclick="openDetails(\''+o.id+'\')">View details</button><button class="action-btn '+ACTION[st][1]+'" onclick="advance(\''+o.id+'\')">'+ACTION[st][0]+'</button></div></article>';
+  h+='<div class="order-meta"><div class="order-meta-item">💰 <strong>'+money(o.total)+'</strong></div><div class="order-meta-item">📍 <strong>Northridge</strong></div><div class="order-meta-item">💳 <strong>'+esc(o.pay)+'</strong></div></div>';
+  h+='<div class="order-actions"><button class="action-btn action-btn-secondary" onclick="openDetails(\''+esc(o.id)+'\')">View details</button>';
+  h+=NEXT[st]?'<button class="action-btn '+ACTION[st][1]+'"'+(busy?' disabled':'')+' onclick="advance(\''+esc(o.id)+'\')">'+(busy?'Saving…':ACTION[st][0])+'</button>':'';
+  h+='</div></article>';
   return h;
 }
 function list(el,status,emptyMsg){
+  const target=$(el);
+  if(!ORDERS.length&&loadState==='loading'){target.innerHTML='<div class="empty"><div style="font-size:40px;margin-bottom:10px">⏳</div>Loading orders… the server can take up to a minute to wake up.</div>';return;}
+  if(!ORDERS.length&&loadState==='error'){target.innerHTML='<div class="empty"><div style="font-size:40px;margin-bottom:10px">⚠️</div>'+esc(loadError)+'<br><button class="action-btn action-btn-secondary" style="margin-top:14px;max-width:180px" onclick="loadOrders(true)">Try again</button></div>';return;}
   const rows=ORDERS.filter(o=>status?o.status===status:(o.status!=='done'&&(qFilter==='all'||o.status===qFilter)));
-  $(el).innerHTML=rows.length?rows.map(cardHtml).join(''):'<div class="empty"><div style="font-size:40px;margin-bottom:10px">🎉</div>'+emptyMsg+'</div>';
+  target.innerHTML=rows.length?rows.map(cardHtml).join(''):'<div class="empty"><div style="font-size:40px;margin-bottom:10px">🎉</div>'+emptyMsg+'</div>';
 }
 function renderBatch(){
+  if(!ORDERS.length&&loadState!=='ready'){$('batch-body').innerHTML='<div class="empty">'+(loadState==='error'?esc(loadError):'Loading orders…')+'</div>';return;}
   const map={};
-  ORDERS.forEach(o=>{if(o.status==='done'||o.status==='ready')return;o.items.forEach(i=>{const k=i.name+'|'+i.detail;map[k]=map[k]||{name:i.name,detail:i.detail,placed:0,baking:0};map[k][o.status]+=i.qty;});});
-  const rows=Object.values(map).sort((a,b)=>a.name.localeCompare(b.name));
+  ORDERS.forEach(o=>{if(o.status==='done'||o.status==='ready')return;(o.items||[]).forEach(i=>{const k=i.name+'|'+i.detail;map[k]=map[k]||{name:i.name,detail:i.detail,placed:0,baking:0};if(map[k][o.status]!==undefined)map[k][o.status]+=Number(i.qty)||0;});});
+  const rows=Object.values(map).sort((a,b)=>String(a.name).localeCompare(String(b.name)));
   $('batch-body').innerHTML=rows.length?
     '<table class="batch-table"><thead><tr><th>Item</th><th>To start</th><th>In oven</th><th>Total</th></tr></thead><tbody>'+
     rows.map(r=>'<tr><td><b>'+esc(r.name)+'</b><br><span style="color:#777;font-size:12px">'+esc(r.detail)+'</span></td><td>'+r.placed+'</td><td>'+r.baking+'</td><td><b>'+(r.placed+r.baking)+'</b></td></tr>').join('')+'</tbody></table>':
@@ -455,36 +483,59 @@ function setFilter(f){
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.f===f));
   list('orders-list',null,'No orders in this stage.');
 }
-const authHeader=()=>({Authorization:'Basic '+store.get('auth','')});
-async function staffApi(path,options={}){
-  const response=await fetch(API_BASE+path,{headers:{'Content-Type':'application/json',...authHeader(),...(options.headers||{})},...options});
-  let data={};try{data=await response.json();}catch(e){}
-  if(!response.ok)throw new Error(data.detail||'The server could not complete that request.');
-  return data;
+
+// ═══ LOADING + AUTO-REFRESH ═══
+function sessionExpired(){
+  store.del('auth'); ORDERS=[]; loadState='idle'; saveOrders(); stopPolling(); closeModal();
+  location.hash='#/login'; showLoginErr('Your session ended. Please sign in again.');
 }
-async function loadOrders(){
-  try{ORDERS=await staffApi('/api/staff/orders/');saveOrders();renderAll();}
-  catch(e){if(/credentials|authentication/i.test(e.message)){store.del('auth');location.hash='#/login';}else toast(e.message);}
+async function loadOrders(manual){
+  if(loadingNow) return; loadingNow=true;
+  if(!ORDERS.length){loadState='loading';renderAll();}
+  $('last-updated').textContent='Updating…';
+  try{
+    const data=await staffApi('/api/staff/orders/',{quiet:ORDERS.length>0&&!manual});
+    ORDERS=Array.isArray(data)?data:[]; loadState='ready'; saveOrders(); renderAll();
+    $('last-updated').textContent='Updated '+timeNow();
+    if(manual) toast('Orders updated');
+  }catch(e){
+    if(isAuthError(e)){sessionExpired();return;}
+    loadError=e.message;
+    if(ORDERS.length){loadState='ready';$('last-updated').textContent='Couldn’t refresh. Showing the last update.';if(manual)toast(e.message);}
+    else{loadState='error';renderAll();$('last-updated').textContent='Couldn’t load orders.';}
+  }finally{loadingNow=false;}
 }
+function stopPolling(){clearInterval(pollT);pollT=null;}
+function startPolling(){stopPolling();pollT=setInterval(()=>{if(isAuthed()&&!document.hidden)loadOrders(false);},REFRESH_MS);}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&isAuthed()&&!$('portal-screen').hidden)loadOrders(false);});
+
 async function advance(id){
-  const o=ORDERS.find(x=>x.id===id); if(!o||!NEXT[o.status]) return;
-  const nx=NEXT[o.status]; o.status=nx;
-  try{const updated=await staffApi('/api/staff/orders/'+encodeURIComponent(id)+'/status/',{method:'PATCH',body:JSON.stringify({status:nx})});const i=ORDERS.findIndex(x=>x.id===id);if(nx==='done')ORDERS.splice(i,1);else ORDERS[i]=updated;saveOrders();renderAll();closeModal();toast(id+' · '+({baking:'moved to Baking',ready:'marked Ready for pickup',done:'picked up and cleared from the board'})[nx]);}
-  catch(e){await loadOrders();toast(e.message);}
+  const o=ORDERS.find(x=>x.id===id); if(!o||!NEXT[o.status]||BUSY.has(id)) return;
+  const nx=NEXT[o.status]; BUSY.add(id); renderAll();
+  try{
+    const updated=await staffApi('/api/staff/orders/'+encodeURIComponent(id)+'/status/',{method:'PATCH',body:JSON.stringify({status:nx})});
+    const i=ORDERS.findIndex(x=>x.id===id);
+    if(i>=0){if(nx==='done')ORDERS.splice(i,1);else ORDERS[i]=updated;}
+    saveOrders(); closeModal();
+    toast(id+' · '+({baking:'moved to Baking',ready:'marked Ready for pickup',done:'picked up and cleared from the board'})[nx]);
+  }catch(e){
+    if(isAuthError(e)){sessionExpired();return;}
+    toast(e.message);
+  }finally{BUSY.delete(id);renderAll();}
 }
 
 // ═══ ORDER DETAILS MODAL ═══
 function openDetails(id){
   const o=ORDERS.find(x=>x.id===id); if(!o) return;
   lastFocus=document.activeElement;
-  let h='<div class="modal-head"><div><div class="modal-title" id="modal-title">Order '+o.id+'</div><div style="margin-top:6px"><span class="status-badge status-'+o.status+'">'+BADGE[o.status]+'</span></div></div><button class="modal-x" id="modal-x" onclick="closeModal()" aria-label="Close details">×</button></div>';
+  let h='<div class="modal-head"><div><div class="modal-title" id="modal-title">Order '+esc(o.id)+'</div><div style="margin-top:6px"><span class="status-badge status-'+esc(o.status)+'">'+(BADGE[o.status]||esc(o.status))+'</span></div></div><button class="modal-x" id="modal-x" onclick="closeModal()" aria-label="Close details">×</button></div>';
   h+='<div class="m-sec"><div class="m-h">Customer</div><div class="m-row"><span>Name</span><b>'+esc(o.customer)+'</b></div><div class="m-row"><span>Phone</span><b>'+esc(o.phone)+'</b></div><div class="m-row"><span>Email</span><b>'+esc(o.email)+'</b></div></div>';
-  h+='<div class="m-sec"><div class="m-h">Pickup</div><div class="m-row"><span>Time</span><b>'+o.pickup+'</b></div><div class="m-row"><span>Location</span><b>Northridge</b></div></div>';
-  h+='<div class="m-sec"><div class="m-h">Items</div>'+o.items.map(i=>'<div class="m-item">'+i.qty+'× '+esc(i.name)+'<small>'+esc(i.detail)+'</small></div>').join('')+'</div>';
-  if(o.allergens.length) h+='<div class="m-sec">'+o.allergens.map(a=>'<div class="allergen-alert" style="margin-bottom:8px">⚠️ <strong>ALLERGEN ALERT</strong> — <span class="allergen-badge">'+a.icon+' '+esc(a.label)+'</span> '+esc(a.text)+'</div>').join('')+'</div>';
+  h+='<div class="m-sec"><div class="m-h">Pickup</div><div class="m-row"><span>Time</span><b>'+esc(o.pickup)+'</b></div><div class="m-row"><span>Location</span><b>Northridge</b></div></div>';
+  h+='<div class="m-sec"><div class="m-h">Items</div>'+(o.items||[]).map(i=>'<div class="m-item">'+esc(i.qty)+'× '+esc(i.name)+'<small>'+esc(i.detail)+'</small></div>').join('')+'</div>';
+  if((o.allergens||[]).length) h+='<div class="m-sec">'+o.allergens.map(a=>'<div class="allergen-alert" style="margin-bottom:8px">⚠️ <strong>ALLERGEN ALERT</strong> — <span class="allergen-badge">'+esc(a.icon)+' '+esc(a.label)+'</span> '+esc(a.text)+'</div>').join('')+'</div>';
   if(o.note) h+='<div class="m-sec"><div class="order-note" style="margin-bottom:0"><strong>📝 Special instructions</strong>'+esc(o.note)+'</div></div>';
-  h+='<div class="m-sec"><div class="m-h">Payment</div><div class="m-row"><span>Method</span><b>'+o.pay+'</b></div><div class="m-row"><span>Total</span><b>'+money(o.total)+'</b></div></div>';
-  h+='<div class="order-actions"><button class="action-btn action-btn-secondary" onclick="closeModal()">Close</button><button class="action-btn '+ACTION[o.status][1]+'" onclick="advance(\''+o.id+'\')">'+ACTION[o.status][0]+'</button></div>';
+  h+='<div class="m-sec"><div class="m-h">Payment</div><div class="m-row"><span>Method</span><b>'+esc(o.pay)+'</b></div><div class="m-row"><span>Total</span><b>'+money(o.total)+'</b></div></div>';
+  h+='<div class="order-actions"><button class="action-btn action-btn-secondary" onclick="closeModal()">Close</button>'+(NEXT[o.status]?'<button class="action-btn '+ACTION[o.status][1]+'"'+(BUSY.has(o.id)?' disabled':'')+' onclick="advance(\''+esc(o.id)+'\')">'+ACTION[o.status][0]+'</button>':'')+'</div>';
   $('modal-card').innerHTML=h; $('modal').hidden=false; $('modal-x').focus();
 }
 function closeModal(){
@@ -493,7 +544,7 @@ function closeModal(){
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape') closeModal();});
 
-// ═══ SHIFT / CLOCK ═══
+// ═══ SHIFT / CLOCK (saved in this browser only; the backend has no shift records yet) ═══
 const getShift=()=>store.get('shift',null);
 const fmtDur=ms=>{const m=Math.max(0,Math.floor(ms/60000));return Math.floor(m/60)+'h '+String(m%60).padStart(2,'0')+'m';};
 const fmtT=iso=>new Date(iso).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
@@ -520,23 +571,28 @@ function tick(){
 }
 setInterval(tick,1000);
 
-// ═══ AUTH (demo) — TODO: replace with POST /api/login from Harut's server ═══
+// ═══ AUTH — checked by the server (POST /api/staff/login/). The header is kept for this browser session only ═══
 const isAuthed=()=>!!store.get('auth','');
 function showLoginErr(m){const e=$('login-error');e.textContent=m;e.hidden=false;}
 async function handleBakerLogin(e){
   e.preventDefault();
   const u=$('baker-username').value.trim(), p=$('baker-password').value;
   if(!u||!p){showLoginErr('Enter your username and password.');return false;}
-  const credentials=btoa(unescape(encodeURIComponent(u+':'+p)));
-  store.set('auth',credentials);
+  const btn=$('login-btn'); btn.disabled=true; btn.textContent='Signing in…'; $('login-error').hidden=true;
+  store.set('auth',btoa(unescape(encodeURIComponent(u+':'+p))));
   try{
-    await staffApi('/api/staff/login/',{method:'POST'});startShift();$('login-error').hidden=true;$('baker-password').value='';await loadOrders();
-    location.hash='#/queue';
-  }catch(err){store.del('auth');showLoginErr('Invalid username or password. Please try again.');}
+    await staffApi('/api/staff/login/',{method:'POST'});
+    startShift(); $('baker-password').value='';
+    location.hash='#/queue'; loadOrders(false);
+  }catch(err){
+    store.del('auth');
+    showLoginErr(isAuthError(err)?'Invalid username or password. Please try again.':err.message);
+  }finally{btn.disabled=false;btn.textContent='Sign in to Kitchen Portal';}
   return false;
 }
 function handleSignOut(){
-  store.del('auth'); closeModal(); $('baker-username').value=''; $('baker-password').value='';
+  store.del('auth'); ORDERS=[]; loadState='idle'; saveOrders(); stopPolling(); closeModal();
+  $('baker-username').value=''; $('baker-password').value='';
   $('login-error').hidden=true; location.hash='#/login'; toast('Signed out');
 }
 function togglePw(){
@@ -547,7 +603,7 @@ function togglePw(){
 // ═══ ROUTER — #/login · #/queue · #/production · #/ready · #/batch · #/clock · anything else = 404 ═══
 const VIEWS={queue:'Orders queue',production:'In production',ready:'Ready for pickup',batch:'Batch production',clock:'Clock in / out','404':'Page not found'};
 function showLogin(){
-  $('portal-screen').hidden=true; $('login-screen').hidden=false; document.title='Staff sign in · Oodel Kitchen';
+  stopPolling(); $('portal-screen').hidden=true; $('login-screen').hidden=false; document.title='Staff sign in · Oodel Kitchen';
   window.scrollTo(0,0); setTimeout(()=>$('baker-username').focus({preventScroll:true}),0);
 }
 function showView(v){
@@ -556,6 +612,7 @@ function showView(v){
   document.querySelectorAll('.sidebar-item').forEach(a=>{const on=a.dataset.view===v;a.classList.toggle('active',on);if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
   document.title=VIEWS[v]+' · Oodel Kitchen'; renderAll(); tick(); window.scrollTo(0,0);
   const m=$('main'); m.setAttribute('tabindex','-1'); m.focus({preventScroll:true});
+  if(!pollT) startPolling();
 }
 function route(){
   const h=location.hash.replace(/^#\/?/,'');
@@ -566,7 +623,7 @@ function route(){
 window.addEventListener('hashchange',route);
 if(isAuthed()&&!getShift()) startShift();
 route();
-if(isAuthed())loadOrders();
+if(isAuthed()) loadOrders(false);
 </script>
 </body>
 </html>
