@@ -242,6 +242,26 @@ a.sidebar-item{text-decoration:none}
   .nav{padding:0 14px}
 }
 @media(max-width:560px){.nav-badge{display:none}}
+.clock-row{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px;margin-bottom:6px}
+.clock-val{display:flex;align-items:center;gap:8px;color:#ccc;font-weight:600}
+.clock-edit{background:none;border:1px solid #444;color:#9ad1b0;font-size:11px;font-weight:600;border-radius:999px;padding:3px 10px;cursor:pointer;font-family:'Inter',sans-serif}
+.clock-edit:hover{border-color:#9ad1b0}
+.clock-edited{font-size:10px;font-weight:700;color:var(--butter);border:1px solid rgba(243,204,99,.4);border-radius:999px;padding:1px 7px;letter-spacing:.04em;text-transform:uppercase}
+.time-edit{background:#1a1a1a;border:1px solid #333;border-radius:var(--radius);padding:16px;margin-bottom:20px;text-align:left}
+.te-title{font-size:14px;font-weight:600;color:var(--cream);margin-bottom:12px}
+input[type=time].l-input{color-scheme:dark;margin-bottom:12px}
+.te-reason{height:auto;padding:10px 14px;resize:vertical;line-height:1.5;margin-bottom:4px}
+.te-meta{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:#777;margin-bottom:10px}
+.te-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#F87171;border-radius:10px;padding:8px 12px;font-size:12px;margin-bottom:10px}
+.te-actions{display:flex;gap:8px}
+.te-cancel,.te-save{flex:1;height:42px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;border:none}
+.te-cancel{background:#252525;color:#aaa;border:1px solid #333}
+.te-save{background:var(--forest);color:var(--cream)}
+.te-save:disabled{opacity:.4;cursor:not-allowed}
+.edit-log{margin-top:20px;text-align:left}
+.edit-log h2{font-size:12px;color:#666;letter-spacing:.08em;text-transform:uppercase;font-weight:600;margin-bottom:8px}
+.edit-item{background:#252525;border-left:2px solid var(--butter);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:12px;color:#aaa;line-height:1.6;word-break:break-word}
+.edit-item b{color:var(--cream)}
 .link-refresh{background:none;border:none;color:#9ad1b0;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;padding:0 0 0 6px}
 .link-refresh:hover{text-decoration:underline}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
@@ -360,11 +380,23 @@ a.sidebar-item{text-decoration:none}
           <div style="font-size:13px;color:#666;margin-bottom:24px" id="clock-date"></div>
           <div style="background:#252525;border-radius:var(--radius);padding:16px;margin-bottom:20px;text-align:left">
             <div style="font-size:12px;color:#555;margin-bottom:8px;letter-spacing:.06em" id="clock-status">CURRENT SHIFT</div>
-            <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px"><span style="color:#888" id="clock-l1">Clocked in</span><span style="color:#ccc;font-weight:600" id="clock-v1">—</span></div>
-            <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:#888" id="clock-l2">Elapsed</span><span style="color:var(--butter);font-weight:600" id="clock-v2">—</span></div>
-          </div>
-          <button class="clock-btn" id="clock-btn" onclick="clockToggle()">Clock out</button>
-          <div style="font-size:12px;color:#666;margin-top:12px">Shift times are saved in this browser only.</div>
+            <div class="clock-row"><span style="color:#888" id="clock-l1">Clocked in</span><span class="clock-val"><span id="clock-v1">—</span> <span class="clock-edited" id="clock-e-start" hidden>Edited</span> <button type="button" class="clock-edit" id="clock-edit-start" onclick="openTimeEdit('start')" hidden>Edit</button></span></div>
+          <div class="clock-row" id="clock-row-out" hidden><span style="color:#888">Clocked out</span><span class="clock-val"><span id="clock-v-out">—</span> <span class="clock-edited" id="clock-e-out" hidden>Edited</span> <button type="button" class="clock-edit" id="clock-edit-out" onclick="openTimeEdit('out')">Edit</button></span></div>
+          <div class="clock-row" style="margin-bottom:0"><span style="color:#888" id="clock-l2">Elapsed</span><span style="color:var(--butter);font-weight:600" id="clock-v2">—</span></div>
+        </div>
+        <form class="time-edit" id="time-edit" hidden onsubmit="return saveTimeEdit(event)" novalidate>
+          <div class="te-title" id="te-title">Change clock-in time</div>
+          <label class="l-label" for="te-time">New time</label>
+          <input class="l-input" type="time" id="te-time" required>
+          <label class="l-label" for="te-reason">Reason for the change (required)</label>
+          <textarea class="l-input te-reason" id="te-reason" rows="3" maxlength="200" placeholder="Write why you are changing the time…" aria-describedby="te-hint" oninput="validateTimeEdit()"></textarea>
+          <div class="te-meta"><span id="te-hint"></span><span><span id="te-count">0</span>/200</span></div>
+          <div class="te-error" id="te-error" role="alert" hidden></div>
+          <div class="te-actions"><button type="button" class="te-cancel" onclick="closeTimeEdit()">Cancel</button><button type="submit" class="te-save" id="te-save" disabled>Save change</button></div>
+        </form>
+        <button class="clock-btn" id="clock-btn" onclick="clockToggle()">Clock out</button>
+        <div style="font-size:12px;color:#666;margin-top:12px">Shift times and any changes are saved in this browser only.</div>
+        <div class="edit-log" id="edit-log" hidden></div>
         </div>
       </section>
 
@@ -552,10 +584,11 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape') closeModal();});
 const getShift=()=>store.get('shift',null);
 const fmtDur=ms=>{const m=Math.max(0,Math.floor(ms/60000));return Math.floor(m/60)+'h '+String(m%60).padStart(2,'0')+'m';};
 const fmtT=iso=>new Date(iso).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-function startShift(){store.set('shift',{start:new Date().toISOString(),out:null});}
+const getEdits=()=>store.get('shift_edits',[]);
+function startShift(){store.set('shift',{start:new Date().toISOString(),out:null});store.set('shift_edits',[]);closeTimeEdit();}
 function clockToggle(){
-  const s=getShift(); if(!s||s.out){startShift();toast('Clocked in at '+timeNow());}
-  else{s.out=new Date().toISOString();store.set('shift',s);toast('Clocked out at '+timeNow());}
+  const s=getShift(); if(!s||s.out){startShift();renderEditLog();toast('Clocked in at '+timeNow());}
+  else{s.out=new Date().toISOString();store.set('shift',s);closeTimeEdit();toast('Clocked out at '+timeNow());}
   tick();
 }
 function tick(){
@@ -563,17 +596,64 @@ function tick(){
   $('current-time').textContent=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})+' · '+timeNow();
   $('clock-display').textContent=timeNow();
   $('clock-date').textContent=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  $('clock-edit-start').hidden=!s;
   if(!s){return;}
   const out=!!s.out, end=out?new Date(s.out):now, dur=fmtDur(end-new Date(s.start));
   $('shift-label').textContent=out?'Shift ended':'Shift started';
   $('shift-time').textContent=out?fmtT(s.out):fmtT(s.start);
   $('shift-elapsed').textContent=(out?'Worked ':'')+dur+(out?'':' elapsed');
   $('clock-status').textContent=out?'CLOCKED OUT':'CURRENT SHIFT';
-  $('clock-l1').textContent=out?'Clocked out':'Clocked in'; $('clock-v1').textContent=out?fmtT(s.out):fmtT(s.start);
+  $('clock-v1').textContent=fmtT(s.start);
+  $('clock-row-out').hidden=!out; if(out) $('clock-v-out').textContent=fmtT(s.out);
+  const ed=getEdits(); $('clock-e-start').hidden=!ed.some(x=>x.field==='start'); $('clock-e-out').hidden=!(out&&ed.some(x=>x.field==='out'));
   $('clock-l2').textContent=out?'Worked':'Elapsed'; $('clock-v2').textContent=dur;
   const b=$('clock-btn'); b.textContent=out?'Clock in':'Clock out'; b.style.background=out?'var(--forest)':'var(--raspberry)';
 }
 setInterval(tick,1000);
+
+// ═══ CHANGE A CLOCK TIME — allowed only after the person writes a reason ═══
+// TODO (needs the backend): save each change, with its reason, to a shift record and the audit log on the server.
+let editField=null;
+function openTimeEdit(which){
+  const s=getShift(); if(!s||(which==='out'&&!s.out)) return;
+  editField=which; const d=new Date(which==='out'?s.out:s.start), p=n=>String(n).padStart(2,'0');
+  $('te-title').textContent=which==='out'?'Change clock-out time':'Change clock-in time';
+  $('te-time').value=p(d.getHours())+':'+p(d.getMinutes());
+  $('te-reason').value=''; $('te-error').hidden=true; validateTimeEdit();
+  $('time-edit').hidden=false; $('te-reason').focus();
+}
+function closeTimeEdit(){editField=null;const f=$('time-edit');if(f)f.hidden=true;}
+function validateTimeEdit(){
+  const ok=$('te-reason').value.trim().length>=10;
+  $('te-count').textContent=$('te-reason').value.length;
+  $('te-save').disabled=!ok; $('te-hint').textContent=ok?'':'Write at least 10 characters to explain the change.';
+}
+function saveTimeEdit(e){
+  e.preventDefault();
+  const s=getShift(), err=$('te-error'), fail=m=>{err.textContent=m;err.hidden=false;return false;};
+  if(!s||!editField) return false;
+  const reason=$('te-reason').value.trim();
+  if(reason.length<10) return fail('Write a reason of at least 10 characters before saving.');
+  const tv=$('te-time').value; if(!/^\d{2}:\d{2}$/.test(tv)) return fail('Choose a time.');
+  const from=editField==='out'?s.out:s.start, orig=new Date(from), nd=new Date(orig), hm=tv.split(':').map(Number);
+  nd.setHours(hm[0],hm[1],0,0);
+  if(nd.getTime()===orig.getTime()) return fail('That is already the saved time. Pick a different time.');
+  if(nd>new Date()) return fail('The time can’t be in the future.');
+  if(editField==='start'&&s.out&&nd>=new Date(s.out)) return fail('Clock-in must be before the clock-out time.');
+  if(editField==='out'&&nd<=new Date(s.start)) return fail('Clock-out must be after the clock-in time.');
+  if(editField==='out') s.out=nd.toISOString(); else s.start=nd.toISOString();
+  store.set('shift',s);
+  const log=getEdits(); log.push({field:editField,from,to:nd.toISOString(),reason,at:new Date().toISOString()}); store.set('shift_edits',log);
+  const label=editField==='out'?'Clock-out':'Clock-in';
+  closeTimeEdit(); renderEditLog(); tick(); toast(label+' time updated'); return false;
+}
+function renderEditLog(){
+  const ed=getEdits(), box=$('edit-log');
+  if(!ed.length){box.hidden=true;box.innerHTML='';return;}
+  box.hidden=false;
+  box.innerHTML='<h2>Changes to this shift</h2>'+ed.slice().reverse().map(x=>'<div class="edit-item"><b>'+(x.field==='out'?'Clock-out':'Clock-in')+'</b>: '+fmtT(x.from)+' → '+fmtT(x.to)+' · edited at '+fmtT(x.at)+'<br>Reason: '+esc(x.reason)+'</div>').join('');
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('time-edit').hidden) closeTimeEdit();});
 
 // ═══ AUTH — checked by the server (POST /api/staff/login/). The header is kept for this browser session only ═══
 const isAuthed=()=>!!store.get('auth','');
@@ -614,7 +694,7 @@ function showView(v){
   $('login-screen').hidden=true; $('portal-screen').hidden=false;
   Object.keys(VIEWS).forEach(k=>$('view-'+k).hidden=k!==v);
   document.querySelectorAll('.sidebar-item').forEach(a=>{const on=a.dataset.view===v;a.classList.toggle('active',on);if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
-  document.title=VIEWS[v]+' · Oodel Kitchen'; renderAll(); tick(); window.scrollTo(0,0);
+  document.title=VIEWS[v]+' · Oodel Kitchen'; renderAll(); renderEditLog(); tick(); window.scrollTo(0,0);
   const m=$('main'); m.setAttribute('tabindex','-1'); m.focus({preventScroll:true});
   if(!pollT) startPolling();
 }
